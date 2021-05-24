@@ -23,15 +23,12 @@ a:hover, a:active {
 }
 
 .container {
-  padding: 1rem 0 0 0;
+  padding: 0 0 0 0;
 }
 
 .sub-container {
-  padding: 1rem 2rem 1rem 2rem;
-}
-
-.title {
-  padding: 1rem 2rem 0rem 2rem;
+  padding: 1rem 1rem 1rem 1rem;
+  margin: 0;
 }
 
 ul {
@@ -45,12 +42,24 @@ li {
 
 .code {
   font-family: 'Roboto Mono', monospace;
+  font-size: 85%;
+  margin: 0 0 1rem 0;
+}
+
+.code-inline {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 85%;
+  display: inline;
+}
+
+.footer {
   font-size: 75%;
-  margin: 0 0 1rem;
+  text-align: center;
+  margin: 5rem 0 0 0;
 }
 
 @media (min-width: 992px) {
-  .sub-container {
+  .container {
     max-width: 993px;
     margin: 0 auto 0 auto;
   }
