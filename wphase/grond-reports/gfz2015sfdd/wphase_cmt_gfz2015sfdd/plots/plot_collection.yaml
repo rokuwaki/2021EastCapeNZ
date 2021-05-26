@@ -1,0 +1,13 @@
+--- !grond.PlotCollection
+group_refs:
+- [bootstrap, default]
+- [check_waveform, default]
+- [contributions, default]
+- [fits_waveform, default]
+- [fits_waveform_ensemble, default]
+- [histogram, default]
+- [hudson, default]
+- [jointpar, default]
+- [location_mt, default]
+- [mt_decomposition, default]
+- [sequence, default]

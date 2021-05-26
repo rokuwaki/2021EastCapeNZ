@@ -1,0 +1,92 @@
+--- !grond.PlotGroup
+name: histogram
+section: solution
+title: Solution Histrogram
+description: Distribution of the problem's parameters.
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: bar-chart-2
+size_cm: [12.5, 7.5]
+items:
+- !grond.PlotItem
+  name: time
+  attributes:
+    parameters: [time]
+- !grond.PlotItem
+  name: north_shift
+  attributes:
+    parameters: [north_shift]
+- !grond.PlotItem
+  name: east_shift
+  attributes:
+    parameters: [east_shift]
+- !grond.PlotItem
+  name: depth
+  attributes:
+    parameters: [depth]
+- !grond.PlotItem
+  name: magnitude
+  attributes:
+    parameters: [magnitude]
+- !grond.PlotItem
+  name: rmnn
+  attributes:
+    parameters: [rmnn]
+- !grond.PlotItem
+  name: rmee
+  attributes:
+    parameters: [rmee]
+- !grond.PlotItem
+  name: rmdd
+  attributes:
+    parameters: [rmdd]
+- !grond.PlotItem
+  name: rmne
+  attributes:
+    parameters: [rmne]
+- !grond.PlotItem
+  name: rmnd
+  attributes:
+    parameters: [rmnd]
+- !grond.PlotItem
+  name: rmed
+  attributes:
+    parameters: [rmed]
+- !grond.PlotItem
+  name: duration
+  attributes:
+    parameters: [duration]
+- !grond.PlotItem
+  name: strike1
+  attributes:
+    parameters: [strike1]
+- !grond.PlotItem
+  name: dip1
+  attributes:
+    parameters: [dip1]
+- !grond.PlotItem
+  name: rake1
+  attributes:
+    parameters: [rake1]
+- !grond.PlotItem
+  name: strike2
+  attributes:
+    parameters: [strike2]
+- !grond.PlotItem
+  name: dip2
+  attributes:
+    parameters: [dip2]
+- !grond.PlotItem
+  name: rake2
+  attributes:
+    parameters: [rake2]
+- !grond.PlotItem
+  name: rel_moment_iso
+  attributes:
+    parameters: [rel_moment_iso]
+- !grond.PlotItem
+  name: rel_moment_clvd
+  attributes:
+    parameters: [rel_moment_clvd]
+attributes: {}
