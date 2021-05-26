@@ -1,0 +1,22 @@
+--- !pf.Event
+lat: -31.55
+lon: -71.55
+time: 2015-09-16 22:54:33
+name: gfz2015sfdd
+depth: 29000.0
+magnitude: 8.2
+moment_tensor: !pf.MomentTensor
+  mnn: -1.0e+20
+  mee: -1.48e+21
+  mdd: 1.58e+21
+  mne: -6.0e+19
+  mnd: 1.5e+20
+  med: 1.96e+21
+  strike1: 176.04830489933735
+  dip1: 71.04426607174707
+  rake1: 89.12026945687612
+  strike2: 358.7547198836286
+  dip2: 18.97538745934025
+  rake2: 92.55954510388547
+  moment: 2.493210781301894e+21
+  magnitude: 8.23117266415204

@@ -1,0 +1,79 @@
+%YAML 1.1
+--- !grond.Config
+path_prefix: ../..
+rundir_template: runs/${problem_name}.grun
+dataset_config: !grond.DatasetConfig
+  stations_stationxml_paths: ['data/events/${event_name}/waveforms/stations.geofon.xml',
+    'data/events/${event_name}/waveforms/stations.iris.xml', 'data/events/${event_name}/waveforms/stations.orfeus.xml']
+  events_path: data/events/${event_name}/event.txt
+  waveform_paths: ['data/events/${event_name}/waveforms/raw']
+  responses_stationxml_paths: ['data/events/${event_name}/waveforms/stations.geofon.xml',
+    'data/events/${event_name}/waveforms/stations.iris.xml', 'data/events/${event_name}/waveforms/stations.orfeus.xml']
+  extend_incomplete: false
+  picks_paths: []
+  blacklist_paths: ['data/events/${event_name}/waveforms/blacklist.txt']
+  blacklist: []
+  whitelist_paths: []
+target_groups:
+- !grond.WaveformTargetGroup
+  normalisation_family: td
+  path: td.wphase
+  weight: 1.0
+  interpolation: nearest_neighbor
+  store_id: global_20s_shallow
+  distance_min: 3000000.0
+  distance_max: 10000000.0
+  channels: [Z, R]
+  misfit_config: !grond.WaveformMisfitConfig
+    fmin: 0.001
+    fmax: 0.005
+    ffactor: 1.5
+    tmin: '{stored:P}-600'
+    tmax: '{stored:S}-60'
+    domain: time_domain
+    norm_exponent: 1
+    tautoshift_max: 0.0
+    autoshift_penalty_max: 0.0
+problem_config: !grond.CMTProblemConfig
+  name_template: wphase_cmt_${event_name}
+  norm_exponent: 1
+  ranges:
+    depth: 5000 .. 40000
+    duration: 50 .. 200
+    east_shift: -200000 .. 200000
+    magnitude: 7.5 .. 8.5
+    north_shift: -200000 .. 200000
+    rmdd: -1.41421 .. 1.41421
+    rmed: -1 .. 1
+    rmee: -1.41421 .. 1.41421
+    rmnd: -1 .. 1
+    rmne: -1 .. 1
+    rmnn: -1.41421 .. 1.41421
+    time: -100 .. 100 | add
+  distance_min: 0.0
+  mt_type: deviatoric
+analyser_configs:
+- !grond.TargetBalancingAnalyserConfig
+  niterations: 1000
+optimiser_config: !grond.HighScoreOptimiserConfig
+  sampler_phases:
+  - !grond.UniformSamplerPhase
+    niterations: 1000
+    ntries_preconstrain_limit: 1000
+  - !grond.DirectedSamplerPhase
+    niterations: 20000
+    ntries_preconstrain_limit: 1000
+    scatter_scale_begin: 2.0
+    scatter_scale_end: 0.5
+    starting_point: excentricity_compensated
+    sampler_distribution: normal
+    standard_deviation_estimator: median_density_single_chain
+    ntries_sample_limit: 1000
+  chain_length_factor: 8.0
+  nbootstrap: 100
+engine_config: !grond.EngineConfig
+  gf_stores_from_pyrocko_config: false
+  gf_store_superdirs: [gf_stores]
+  gf_store_dirs: []
+event_names: []
+event_names_exclude: []

@@ -1,0 +1,15 @@
+--- !grond.PlotGroup
+name: contributions
+section: solution
+title: Target Contributions
+description: Contributions of the targets towards the misfit.
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: thermometer
+size_cm: [21.0, 14.9]
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

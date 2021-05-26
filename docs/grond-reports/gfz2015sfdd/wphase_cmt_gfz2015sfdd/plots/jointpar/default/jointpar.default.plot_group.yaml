@@ -1,0 +1,56 @@
+--- !grond.PlotGroup
+name: jointpar
+section: solution
+title: Jointpar Plot
+description: Source problem parameter's tradeoff plots.
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: crosshair
+size_cm: [20.0, 20.0]
+items:
+- !grond.PlotItem
+  name: fig_0_0
+  attributes:
+    parameters: [time, north_shift, east_shift, depth, magnitude, rmnn, rmee]
+- !grond.PlotItem
+  name: fig_1_0
+  attributes:
+    parameters: [time, rmdd, north_shift, east_shift, depth, magnitude, rmnn, rmne,
+      rmnd, rmed, duration, strike1]
+- !grond.PlotItem
+  name: fig_1_1
+  attributes:
+    parameters: [rmee, rmdd, rmne, rmnd, rmed, duration, strike1]
+- !grond.PlotItem
+  name: fig_2_0
+  attributes:
+    parameters: [time, dip1, north_shift, east_shift, depth, magnitude, rmnn, rake1,
+      strike2, dip2, rake2, rel_moment_iso]
+- !grond.PlotItem
+  name: fig_2_1
+  attributes:
+    parameters: [rmee, dip1, rmdd, rmne, rmnd, rmed, duration, rake1, strike2, dip2,
+      rake2, rel_moment_iso]
+- !grond.PlotItem
+  name: fig_2_2
+  attributes:
+    parameters: [strike1, dip1, rake1, strike2, dip2, rake2, rel_moment_iso]
+- !grond.PlotItem
+  name: fig_3_0
+  attributes:
+    parameters: [time, rel_moment_clvd, north_shift, east_shift, depth, magnitude,
+      rmnn]
+- !grond.PlotItem
+  name: fig_3_1
+  attributes:
+    parameters: [rmee, rel_moment_clvd, rmdd, rmne, rmnd, rmed, duration]
+- !grond.PlotItem
+  name: fig_3_2
+  attributes:
+    parameters: [strike1, rel_moment_clvd, dip1, rake1, strike2, dip2, rake2]
+- !grond.PlotItem
+  name: fig_3_3
+  attributes:
+    parameters: [rel_moment_iso, rel_moment_clvd]
+attributes: {}
