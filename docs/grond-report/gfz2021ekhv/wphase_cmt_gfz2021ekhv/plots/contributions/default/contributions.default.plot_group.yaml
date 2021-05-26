@@ -1,0 +1,41 @@
+--- !grond.PlotGroup
+name: contributions
+section: solution
+title: Target Contributions
+description: '
+
+  Contributions of the targets to the total misfit.
+
+
+  The relative contribution that each single target has in the global misfit
+
+  result is plotted relative and unscales as a function of global misfit
+
+  (descending).
+
+
+  The target contribution is shown in color-filled curves with the bottom curve
+
+  on the bottom and the best-fit target on top. This plot can be used to analyse
+
+  the balance of targets in the optimisations. For ideal configurations, the
+
+  target contributions are of similar size. If the contribution of a single
+
+  target is much larger than those of all others, the weighting should be
+
+  modified.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: thermometer
+size_cm:
+- 21.0
+- 14.9
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

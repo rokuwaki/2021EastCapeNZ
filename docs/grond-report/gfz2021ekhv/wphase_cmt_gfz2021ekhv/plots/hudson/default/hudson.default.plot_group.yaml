@@ -1,0 +1,28 @@
+--- !grond.PlotGroup
+name: hudson
+section: solution
+title: Hudson Plot
+description: '
+
+  Hudson''s source type plot with the ensemble of bootstrap solutions.
+
+
+  For about 10% of the solutions (randomly chosen), the focal mechanism is
+
+  depicted, others are represented as dots. The square marks the global best
+
+  fitting solution.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: box
+size_cm:
+- 17.5
+- 13.125
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

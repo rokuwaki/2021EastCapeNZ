@@ -1,0 +1,30 @@
+--- !grond.PlotCollection
+group_refs:
+- - acceptance
+  - default
+- - bootstrap
+  - default
+- - check_waveform
+  - default
+- - contributions
+  - default
+- - fits_waveform
+  - default
+- - fits_waveform_ensemble
+  - default
+- - histogram
+  - default
+- - hudson
+  - default
+- - jointpar
+  - default
+- - location_mt
+  - default
+- - mt_decomposition
+  - default
+- - mt_fuzzy
+  - default
+- - seismic_stations
+  - default
+- - sequence
+  - default

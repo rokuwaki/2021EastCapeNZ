@@ -1,0 +1,191 @@
+%YAML 1.1
+--- !grond.Config
+path_prefix: ../..
+rundir_template: runs/${problem_name}.grun
+dataset_config: !grond.DatasetConfig
+  stations_stationxml_paths:
+  - stations/all.xml
+  events_path: data/events/${event_name}/event.txt
+  waveform_paths:
+  - waveforms/
+  responses_stationxml_paths:
+  - stations/all.xml
+  extend_incomplete: false
+  picks_paths: []
+  blacklist_paths:
+  - data/events/${event_name}/waveforms/blacklist.txt
+  blacklist:
+  - IU.PMG.00.LH1
+  - IU.PMG.00.LH2
+  - GD1S
+  - RMQ
+  - AUCAS
+  - VNA1
+  - NGU
+  - VA02
+  - VA04
+  - PLAI
+  - SANI
+  - IU.PTCN.00.R
+  - IU.PTCN.00.T
+  - IU.SANI.00.T
+  - IU.SANI.00.R
+  - NGU
+  - VNA3
+  - CTZ
+  - IU.FUNA.00.LH1
+  - IU.FUNA.00.LH2
+  - II.KWJN.00.LH1
+  - II.KWJN.00.LH2
+  - IU.WAKE.00.LH1
+  - IU.WAKE.00.LH2
+  - G.AIS
+  - II.COCO.00.LH1
+  - II.COCO.00.LH2
+  - IU.MAJO.00.LH2
+  - IU.TRQA
+  - IU.ADK.00.LH1
+  - IU.ADK.00.LH2
+  - II.TAU.00.LH1
+  - II.TAU.00.LH2
+  - G.DRV.00.LHE
+  - G.DRV.00.LHN
+  - IU.TARA.00.LH1
+  - IU.TARA.00.LH2
+  - IU.PTCN.00.LH1
+  - IU.PTCN.00.LH2
+  - IU.XMAS.00.LH1
+  - IU.XMAS.00.LH2
+  - IU.CASY.00.LH1
+  - IU.CASY.00.LH2
+  - IU.JOHN.00.LH1
+  - IU.MIDW
+  - IU.QSPA.00.LHZ
+  - IU.PMSA.00.LH1
+  - IU.PMSA.00.LH2
+  - G.INU.00.LHN
+  - IU.MAJO.00.LH1
+  - IU.HNR.00.LH1
+  - IU.HNR.00.LH2
+  - IU.SBA.00.LH1
+  - IU.SBA.00.LH2
+  - IU.CTAO.00.LH2
+  - IU.CTAO.00.LH1
+  - IU.LCO.00.LH1
+  - IU.LCO.00.LH2
+  - II.HOPE.00.LH1
+  - II.HOPE.00.LH2
+  - G.CRZF.00.LHE
+  - G.CRZF.00.LHN
+  - G.FUTU.00.LHE
+  - G.INU.00.LHE
+  - G.INU.00.LHN
+  - G.PAF.00.LHE
+  - G.PAF.00.LHN
+  - G.PEL.00.LHE
+  - G.PEL.00.LHN
+  - G.TAOE.00.BHE
+  - G.TAOE.00.BHN
+  - G.PLCA.00.BHE
+  - G.PLCA.00.BHN
+  - IU.DAV.00.LH1
+  - IU.DAV.00.LH2
+  - IU.JOHN.00.LH1
+  - IU.JOHN.00.LH2
+  whitelist_paths: []
+target_groups:
+- !grond.WaveformTargetGroup
+  normalisation_family: td_tele
+  path: td_tele.wphase
+  weight: 1.0
+  interpolation: nearest_neighbor
+  store_id: global_20s_shallow
+  distance_min: 550000.0
+  distance_max: 9900000.0
+  exclude: []
+  channels:
+  - Z
+  - N
+  - E
+  misfit_config: !grond.WaveformMisfitConfig
+    quantity: displacement
+    fmin: 0.002
+    fmax: 0.0083
+    ffactor: 2.0
+    tmin: '{stored:P}'
+    tmax: '{stored:P}+0.06666S'
+    domain: time_domain
+    norm_exponent: 1
+    tautoshift_max: 0.0
+    autoshift_penalty_max: 0.0
+- !grond.WaveformTargetGroup
+  normalisation_family: td_regional
+  path: td_regional.wphase
+  weight: 1.0
+  interpolation: nearest_neighbor
+  store_id: global_20s_shallow
+  distance_min: 9999550000.0
+  distance_max: 99991320000.0
+  exclude: []
+  channels:
+  - Z
+  - N
+  - E
+  misfit_config: !grond.WaveformMisfitConfig
+    quantity: displacement
+    fmin: 0.002
+    fmax: 0.0083
+    ffactor: 2.0
+    tmin: '{stored:P}'
+    tmax: '{stored:P}+180'
+    domain: time_domain
+    norm_exponent: 1
+    tautoshift_max: 0.0
+    autoshift_penalty_max: 0.0
+problem_config: !grond.CMTProblemConfig
+  name_template: wphase_cmt_${event_name}
+  norm_exponent: 1
+  ranges:
+    depth: 5000 .. 90000
+    duration: 1 .. 100
+    east_shift: -75000 .. 75000
+    magnitude: 7 .. 7.5
+    north_shift: -75000 .. 75000
+    rmdd: -1.41421 .. 1.41421
+    rmed: -1 .. 1
+    rmee: -1.41421 .. 1.41421
+    rmnd: -1 .. 1
+    rmne: -1 .. 1
+    rmnn: -1.41421 .. 1.41421
+    time: 0 .. 30 | add
+  distance_min: 0.0
+  mt_type: deviatoric
+  stf_type: HalfSinusoidSTF
+  nthreads: 1
+analyser_configs:
+- !grond.TargetBalancingAnalyserConfig
+  niterations: 4000
+  use_reference_magnitude: false
+optimiser_config: !grond.HighScoreOptimiserConfig
+  sampler_phases:
+  - !grond.UniformSamplerPhase
+    niterations: 4000
+    ntries_preconstrain_limit: 1000
+  - !grond.DirectedSamplerPhase
+    niterations: 40000
+    ntries_preconstrain_limit: 1000
+    scatter_scale_begin: 2.0
+    scatter_scale_end: 0.5
+    starting_point: excentricity_compensated
+    sampler_distribution: normal
+    standard_deviation_estimator: median_density_single_chain
+    ntries_sample_limit: 1000
+  chain_length_factor: 8.0
+  nbootstrap: 100
+engine_config: !grond.EngineConfig
+  gf_stores_from_pyrocko_config: false
+  gf_store_superdirs:
+  - gf_stores
+  gf_store_dirs: []
+event_names: []
+event_names_exclude: []

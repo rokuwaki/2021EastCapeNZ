@@ -1,0 +1,32 @@
+--- !grond.PlotGroup
+name: mt_decomposition
+section: solution
+title: MT Decomposition
+description: '
+
+  Moment tensor decomposition of the best-fitting solution into isotropic,
+
+  deviatoric and best double couple components.
+
+
+  Shown are the ensemble best, the ensemble mean and, if available, a reference
+
+  mechanism. The symbol size indicates the relative strength of the components.
+
+  The inversion result is consistent and stable if ensemble mean and ensemble
+
+  best have similar symbol size and patterns.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: sun
+size_cm:
+- 15.0
+- 5.0
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

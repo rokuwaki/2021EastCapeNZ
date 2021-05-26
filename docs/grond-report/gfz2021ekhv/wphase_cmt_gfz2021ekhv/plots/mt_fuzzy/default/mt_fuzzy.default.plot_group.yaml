@@ -1,0 +1,32 @@
+--- !grond.PlotGroup
+name: mt_fuzzy
+section: solution
+title: Fuzzy MT
+description: '
+
+  A fuzzy moment tensor, illustrating the solution''s uncertainty.
+
+
+  The P wave radiation pattern strength of every ensemble solution is stacked for
+
+  all ray spokes. The projection shows the stacked radiation pattern. If the
+
+  variability of the ensemble solutions is small, the fuzzy plot has clearly
+
+  separated black and white fields, consistent with the nodal lines of the global
+
+  best solution (indicated in red).
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: wind
+size_cm:
+- 10.0
+- 10.0
+items:
+- !grond.PlotItem
+  name: unclustered
+  attributes: {}
+attributes: {}

@@ -1,0 +1,53 @@
+--- !grond.PlotGroup
+name: bootstrap
+section: optimiser
+title: Bootstrap Misfit
+description: '
+
+  Sorted misfit (descending) of single bootstrap chains.
+
+
+  For each bootstrap configuration, all models are sorted according to their
+
+  misfit value (red lines) and their global misfit value (black line). (They are
+
+  sorted individually for each line). The best model of every bootstrap
+
+  configuration (right end model of red lines) is marked as a cross in the global
+
+  misfit configuration. The horizontal black lines indicate mean and +- standard
+
+  deviation of the y-axis values of these crosses.
+
+
+  If the bootstrap configurations converge to the same region in model-space, all
+
+  crosses should be close to the right end of the plot. If this is not the case,
+
+  some bootstrap configurations have converged to very different places in
+
+  model-space. This would indicate that there might be inconsistencies in the
+
+  observations (maybe due to faulty or noisy or misoriented data). Also the shape
+
+  of the curve in general can give information. A well-behaved optimisation run
+
+  has approximately linear functions in this plot. Only at the end they should
+
+  have a higher downward gradient. This would be the place where the objective
+
+  functions of the bootstrap start to disagree.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: trending-down
+size_cm:
+- 21.0
+- 14.9
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

@@ -1,0 +1,28 @@
+--- !grond.PlotGroup
+name: location_mt
+section: solution
+title: MT Location
+description: '
+
+  Location plot of the ensemble of best solutions in three cross-sections.
+
+
+  The coordinate range is defined by the search space given in the config file.
+
+  Symbols show best double-couple mechanisms, and colors indicate low (red) and
+
+  high (blue) misfit.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: target
+size_cm:
+- 20.0
+- 20.0
+items:
+- !grond.PlotItem
+  name: main
+  attributes: {}
+attributes: {}

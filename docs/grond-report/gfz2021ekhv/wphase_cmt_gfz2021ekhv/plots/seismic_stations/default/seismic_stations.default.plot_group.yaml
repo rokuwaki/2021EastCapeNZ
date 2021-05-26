@@ -1,0 +1,79 @@
+--- !grond.PlotGroup
+name: seismic_stations
+section: checks
+title: Seismic station locations
+description: '
+
+  Plot showing seismic station locations and attributes.
+
+
+  Station locations in dependence of distance and azimuth are shown. The center
+
+  of the plot corresponds to the origin of the search space, not to the optimised
+
+  location of the source.
+
+  '
+formats:
+- !grond.PNG {}
+variant: default
+feather_icon: target
+size_cm:
+- 16.0
+- 13.0
+items:
+- !grond.PlotItem
+  name: seismic_stations_weights_td_tele.wphase.E
+  attributes: {}
+  title: Station weights (td_tele.wphase.E)
+  description: '
+
+
+    Markers are scaled according to the weighting factor of the corresponding target''s
+    contribution in the misfit function.'
+- !grond.PlotItem
+  name: seismic_stations_contributions_td_tele.wphase.E
+  attributes: {}
+  title: Station misfit contributions (td_tele.wphase.E)
+  description: '
+
+
+    Markers are scaled according to their misfit contribution for the globally best
+    source model.'
+- !grond.PlotItem
+  name: seismic_stations_weights_td_tele.wphase.N
+  attributes: {}
+  title: Station weights (td_tele.wphase.N)
+  description: '
+
+
+    Markers are scaled according to the weighting factor of the corresponding target''s
+    contribution in the misfit function.'
+- !grond.PlotItem
+  name: seismic_stations_contributions_td_tele.wphase.N
+  attributes: {}
+  title: Station misfit contributions (td_tele.wphase.N)
+  description: '
+
+
+    Markers are scaled according to their misfit contribution for the globally best
+    source model.'
+- !grond.PlotItem
+  name: seismic_stations_weights_td_tele.wphase.Z
+  attributes: {}
+  title: Station weights (td_tele.wphase.Z)
+  description: '
+
+
+    Markers are scaled according to the weighting factor of the corresponding target''s
+    contribution in the misfit function.'
+- !grond.PlotItem
+  name: seismic_stations_contributions_td_tele.wphase.Z
+  attributes: {}
+  title: Station misfit contributions (td_tele.wphase.Z)
+  description: '
+
+
+    Markers are scaled according to their misfit contribution for the globally best
+    source model.'
+attributes: {}
