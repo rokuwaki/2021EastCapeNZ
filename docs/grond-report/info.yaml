@@ -3,7 +3,7 @@ title: Grond Report
 description: This interactive document aggregates W-phase CMT inversion results
   from optimisations performed with Grond for the Mw 7.3 2021 East Cape, New Zealand earthquake.
   This report page is hosted by GitHub Pages from
-  the project <a href="https://github.com/rokuwaki/2021EastCapeNZ">rokuwaki/2021EastCapeNZ</a>.
+  the project <a href="https://github.com/rokuwaki/2021EastCapeNZ">https://github.com/rokuwaki/2021EastCapeNZ</a>.
 version_info: !grond.VersionInfo
   grond_version: '1.5.1'
   grond_long_version: 'grond_1.5.1_7a7d3bae687fa3745033060dd223a598181f8e17_2021-05-10_11:55:59'
