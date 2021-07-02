@@ -1,12 +1,11 @@
 :root {
   --black: #000000;
   --gray-link: #777777;
-  --gray-link-border: #777777;
 }
 
 body {
   margin: 0 0 0 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto Mono', monospace, sans-serif;
   -webkit-text-size-adjust: 100%;
   color: var(--black);
 }
@@ -19,16 +18,11 @@ a:link, a:visited {
 
 a:hover, a:active {
   color: var(--gray-link);
-  border-bottom: 1px solid var(--gray-link-border);
-}
-
-.container {
-  padding: 0 0 0 0;
+  border-bottom: 1px solid var(--gray-link);
 }
 
 .sub-container {
-  padding: 1rem 2rem 0 2rem;
-  margin: 0;
+  padding: 1rem 3rem 0 3rem;
 }
 
 .cover {
@@ -38,37 +32,37 @@ a:hover, a:active {
   opacity: 0.2;
   background-size: cover;
   padding: 0 5rem 0 5rem;
+  margin: 2rem 0 1rem 0;
 }
 
 .code {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 85%;
   line-height: 2;
 }
 
 .footer {
-  font-size: 75%;
+  font-size: 70%;
   text-align: center;
   margin: 5rem 0 3rem 0;
 }
 
-.material-icons-outlined {
+.material-icons-outlined, .fab {
   vertical-align: middle;
-  line-height: 1px;
+  line-height: 2px;
   font-size: 100%;
 }
 
 img.pyrocko {
   height: 15px;
-  margin-right: 4px;
+  margin-right: 1px;
   vertical-align: middle;
 }
 
-@media (min-width: 962px) {
+@media (min-width: 1062px) {
   .container {
-    max-width: 963px;
+    max-width: 962px;
     margin: 0 auto 0 auto;
   }
+
   .sub-container {
     padding: 1rem 0 0 0;
   }
