@@ -896,9 +896,9 @@ def varianceFFM(figname):
     #model_para = utils.load_fort40(datarootdir+'model_'+str(model[13])+'/fort.40')
     model_para = model_paras[model_paras['modelid'] == model[13]].reset_index()
     ax.scatter(model_para.depth.values, model_para.variance.values, facecolor='C5', s=40, lw=1, edgecolor='k',
-               marker='o', label='Optimum model '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
+               marker='o', label='Optimal model '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
 
-    ax.legend(loc='lower left', fontsize=10, facecolor='none', handletextpad=0.1, borderpad=0.1, labelspacing=0.1)
+    ax.legend(loc='lower left', fontsize=10, facecolor='none', handletextpad=0.6, borderpad=0.1, labelspacing=0.1, handlelength=1.5)
 
     ax.set_ylim(0.2, 0.4)
     ax.set_yticks(np.arange(0.2, 0.5, 0.05))
@@ -929,19 +929,19 @@ def varianceFFM(figname):
 
     axp = ax.get_position()
     ax = fig.add_axes([axp.x0, axp.y0-axp.height-0.1, axp.width, axp.height])
-    ax.plot(deplist, varlist, 'o-', color='k', markersize=6, label='Vertical model '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
+    ax.plot(deplist, varlist, 'o-', color='k', markersize=6, label='Vertical models '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
 
     #model_para = utils.load_fort40(datarootdir+'model_'+str(model[13])+'/fort.40')
     model_para = model_paras[model_paras['modelid'] == model[13]].reset_index()
     ax.scatter(model_para.depth.values, model_para.variance.values, facecolor='C5', s=40, lw=1, edgecolor='k', zorder=10,
-               marker='o', label='Optimum model '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
+               marker='o', label='Optimal model '+r'($\phi_{\rm{m}}=200\degree$, $\delta_{\rm{m}}=90\degree$)')
 
     axp = ax.get_position()
     fig.text(axp.x0+0.01, axp.y1-0.01, 'Nucleation depth', ha='left', va='top', fontsize=10)
     ax.set_yticks(np.arange(0.25, 0.28, 0.01))
     ax.set_ylim(0.25, 0.29)
     ax.set_xlim(0, 120)
-    ax.legend(loc='lower left', fontsize=10, facecolor='none', handletextpad=0.1, borderpad=0.1, labelspacing=0.1)
+    ax.legend(loc='lower left', fontsize=10, facecolor='none', handletextpad=0.6, borderpad=0.1, labelspacing=0.1, handlelength=1.5)
     ax.set_xlabel('Hypo depth (km)')
     ax.set_ylabel('Variance')
 
