@@ -1263,7 +1263,7 @@ def reloc(figname):
     axpxloc, axpyloc = axp.x1+0.1, axpmap.y0-xzheight-0.01
     tickintx,tickinty, tickformat = 5, 5, 0
 
-    lonmin=np.min(lon)-lonmargin; lonmax=np.max(lon)+2; latmin=np.min(lat)-latmargin; latmax=np.max(lat)+latmargin
+    lonmin=np.min(lon)-lonmargin; lonmax=np.max(lon)+3; latmin=np.min(lat)-latmargin; latmax=np.max(lat)+latmargin
 
     m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
               rsphere=(6378137.00,6356752.3142),resolution='i',projection='cyl')
@@ -1286,10 +1286,10 @@ def reloc(figname):
     sc.set_path_effects([path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
 
     for j in range(len(stacode)):
-        if stacode[j] == 'RAO':
-            slon, slat = 177.929000, -29.245000
-        elif stacode[j] == 'SNZO':
-            slon, slat = 174.7046, -41.3101
+        if stacode[j] == 'RAO': #https://www.fdsn.org/networks/detail/IU/
+            slon, slat = -177.929, -29.245
+        elif stacode[j] == 'SNZO': #https://www.fdsn.org/networks/detail/IU/
+            slon, slat = 174.7043, -41.3087
 
         else:
             slat = float(df_station.loc[(df_station['code'] == stacode[j])]['lat'].values[0])
@@ -1943,10 +1943,11 @@ def rcmtLF(figname):
     for j in range(len(df)):
         if df['used'][j] == 1:
             if df['code'][j] == 'RAO':
-                lon, lat = 177.929000, -29.245000
+                lon, lat = -177.929, -29.245
             else:
                 lat = float(df_station.loc[(df_station['code'] == df['code'][j])]['lat'].values[0])
                 lon = float(df_station.loc[(df_station['code'] == df['code'][j])]['lon'].values[0])
+            if lon < 0: lon += 360
             x, y = m(lon, lat)
             ax.scatter(x, y, marker='^', facecolor='ivory', edgecolor='k', lw=0.75, s=50, zorder=10)
             #ax.text(x, y, df['code'][j])
@@ -2145,7 +2146,7 @@ def rcmtHF(figname):
 
     lonmin=np.min(lon)-lonmargin; lonmax=np.max(lon)+lonmargin; latmin=np.min(lat)-latmargin; latmax=np.max(lat)+latmargin
     elon, elat = 179.8000000000, -37.3700000000
-    lonmin, lonmax, latmin, latmax = elon-5, elon+1, elat-5, elat+9
+    lonmin, lonmax, latmin, latmax = elon-5, elon+3, elat-5, elat+9
     #print(lonmin, lonmax, latmin, latmax)
 
     m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
@@ -2167,12 +2168,13 @@ def rcmtHF(figname):
     for j in range(len(df)):
         if df['used'][j] == 1:
             if df['code'][j] == 'RAO':
-                lon, lat = 177.929000, -29.245000
+                lon, lat = -177.929000, -29.245000
             else:
                 lat = float(df_station.loc[(df_station['code'] == df['code'][j])]['lat'].values[0])
                 lon = float(df_station.loc[(df_station['code'] == df['code'][j])]['lon'].values[0])
+            if lon < 0: lon += 360
             x, y = m(lon, lat)
-            ax.scatter(x, y, marker='^', facecolor='ivory', edgecolor='k', lw=0.75, s=50, zorder=10)
+            ax.scatter(x, y, marker='^', facecolor='ivory', edgecolor='k', lw=0.75, s=30, zorder=10)
             #ax.text(x, y, df['code'][j])
 
 
@@ -2471,7 +2473,7 @@ def rcmtHF2D(figname):
 
     lonmin=np.min(lon)-lonmargin; lonmax=np.max(lon)+lonmargin; latmin=np.min(lat)-latmargin; latmax=np.max(lat)+latmargin
     elon, elat = 179.8000000000, -37.3700000000
-    lonmin, lonmax, latmin, latmax = elon-5, elon+1, elat-5, elat+9
+    lonmin, lonmax, latmin, latmax = elon-5, elon+3, elat-5, elat+9
     #print(lonmin, lonmax, latmin, latmax)
 
     m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
@@ -2493,12 +2495,14 @@ def rcmtHF2D(figname):
     for j in range(len(df)):
         if df['used'][j] == 1:
             if df['code'][j] == 'RAO':
-                lon, lat = 177.929000, -29.245000
+                lon, lat = -177.929, -29.245
+                
             else:
                 lat = float(df_station.loc[(df_station['code'] == df['code'][j])]['lat'].values[0])
                 lon = float(df_station.loc[(df_station['code'] == df['code'][j])]['lon'].values[0])
+            if lon < 0: lon += 360
             x, y = m(lon, lat)
-            ax.scatter(x, y, marker='^', facecolor='ivory', edgecolor='k', lw=0.75, s=50, zorder=10)
+            ax.scatter(x, y, marker='^', facecolor='ivory', edgecolor='k', lw=0.75, s=30, zorder=10)
             #ax.text(x, y, df['code'][j])
 
 
