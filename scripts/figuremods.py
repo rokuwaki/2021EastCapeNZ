@@ -50,7 +50,7 @@ def fig1(figname):
     ax.plot(x, y, color=cm.lapaz(255), lw=0.75, linestyle='--', zorder=1, alpha=0.5)
 
     # beachballs
-    utils.drawbeachball(datarootdir+'work/SPUD_QUAKEML_bundle.xml',datarootdir,lonmin,lonmax,latmin,latmax,ax,m)
+    utils.drawbeachball(datarootdir+'work/SPUD_QUAKEML_bundle.xml',datarootdir,lonmin,lonmax,latmin,latmax,ax,m, fig)
 
     # epicenter
     model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
@@ -60,8 +60,8 @@ def fig1(figname):
                   path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
 
     # draw some labels and plate motion vectors
-    utils.drawlabels(elat, elon, ax, m)
-    
+    utils.drawlabels(elat, elon, ax, m, lonmin, lonmax, latmin, latmax)
+
     # regional map
     axp = ax.get_position()
     axpxloc, axpyloc, axpwidth = axp.x1+0.005, axp.y0, 0.18
@@ -94,7 +94,7 @@ def fig1(figname):
         x, y = m(lon, lat)
         ax.text(x, y, text, path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
     
-    plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=300, facecolor='w')
     plt.show()
     
     
@@ -157,6 +157,9 @@ def fig2(figname, ptflag, j, rcmtflag=1, synflag=0):
         if rcmtflag == 1:
             # R-CMTs
             utils.drawRCMT(fig, ax, m, datarootdir, axes, model_para)
+            
+        ax.set_rasterized(True)
+    
             
     if synflag == 1:
         if j == 13:
@@ -313,6 +316,7 @@ def fig3(figname):
         ax.invert_yaxis()
         ax.yaxis.set_ticks_position('right')
         ax.yaxis.set_label_position('right')
+        
 
 
         ax.text(3, model_para.depth[0]-17, 'E1', ha='center', va='center', color='k', fontsize=8,
@@ -409,12 +413,12 @@ def fig3(figname):
                     tmp = beachball.plot_beachball_mpl(focmecs, ax, size=7*tmpdf['slip'][i]/np.max(df['slip']), position=(tmpdf['x'][i], tmpdf['dep'][i]),
                                              beachball_type='dc', edgecolor='C7', color_t=cmap(tmpdf['slip'][i]/np.max(df['slip'])),
                                              color_p='w', linewidth=0.2,
-                                                       alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=(int(2+tmpdf['slip'][i]/np.max(df['slip'])*10)))
+                                                       alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=(int(2+tmpdf['slip'][i]/np.max(df['slip'])*10) -13 ))
                 except:
                     tmp = beachball.plot_beachball_mpl(focmecsDC, ax, size=7*tmpdf['slip'][i]/np.max(df['slip']), position=(tmpdf['x'][i], tmpdf['dep'][i]),
                                              beachball_type='dc', edgecolor='C7', color_t=cmap(tmpdf['slip'][i]/np.max(df['slip'])),
                                              color_p='w', linewidth=0.2,
-                                                       alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=(int(2+tmpdf['slip'][i]/np.max(df['slip'])*10)))
+                                                       alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=(int(2+tmpdf['slip'][i]/np.max(df['slip'])*10) -13 ))
 
                 x = np.cos(np.deg2rad(90-p_azi)) * tmpdf['slip'][i]/np.max(df['slip']) * 15
                 y = np.sin(np.deg2rad(90-p_azi)) * tmpdf['slip'][i]/np.max(df['slip']) * 15 * -1 # !! [-1] is required because y-axis is later inverted
@@ -422,15 +426,16 @@ def fig3(figname):
                 #y = np.sin(np.deg2rad(90-t_azi)) * tmpdf['slip'][i]/np.max(df['slip']) * 10 * 1
                 for pm in [-1, 1]:
                     ax.plot([tmpdf['x'][i], tmpdf['x'][i]+pm*x], [tmpdf['dep'][i], tmpdf['dep'][i]+pm*y],
-                            color='k', lw=0.5, alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=1)
+                            color='k', lw=0.5, alpha=tmpdf['slip'][i]/np.max(df['slip']), zorder=-15)
 
             dx, dy = model_para.xx[0], model_para.yy[0]
             for i in range(len(tmpdf)):
                 tmpx, tmpy = tmpdf['x'][i], tmpdf['dep'][i]
                 tmpxlist = [tmpx-dx/2, tmpx+dx/2, tmpx+dx/2, tmpx-dx/2, tmpx-dx/2]
                 tmpylist = [tmpy-dy/2, tmpy-dy/2, tmpy+dy/2, tmpy+dy/2, tmpy-dy/2]
-                ax.fill(tmpxlist, tmpylist, facecolor=cmap(tmpdf['slip'][i]/np.max(df['slip'])), edgecolor='none', zorder=0)
+                ax.fill(tmpxlist, tmpylist, facecolor=cmap(tmpdf['slip'][i]/np.max(df['slip'])), edgecolor='none', zorder=-16)
 
+            ax.set_rasterization_zorder(0)
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
             ax.set_yticks(np.arange(0, 120, 20))
@@ -1332,7 +1337,7 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
 
         data = np.loadtxt(inputcatalog, usecols=(8,7,9))
         np.savetxt(datarootdir+'work/tmp.txt', data)
-        print(len(data))
+        #print(len(data))
 
         command = ['gmt','project',datarootdir+'work/tmp.txt','-C'+str(elon)+'/'+str(elat),'-A20','-Q','>',
                    datarootdir+'work/tmp_proj_20.txt']
@@ -1340,6 +1345,13 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
+        
+        if num == 1:
+            data = np.loadtxt(inputcatalog, usecols=(17,19))
+            np.savetxt(datarootdir+'work/tmp_rms.txt', data)
+            
+            
+        
 
         data = np.loadtxt(inputcatalog, usecols=(1,2,3,4,5,6,10))
         year,month,day,hour,minute,sec,mag = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4],data[:,5],data[:,6]
@@ -1356,6 +1368,14 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
 
         df = pd.DataFrame(data = np.vstack([tmp_time, lat, lon, dep, mag, x, y]).T,
                            columns=['origintime', 'latitude', 'longitude', 'depth', 'magnitude', 'projx', 'projy'])
+        
+        if num == 1:
+            tmpdata = np.loadtxt(datarootdir+'work/tmp_rms.txt')
+            rms, loctype= tmpdata[:,0],tmpdata[:,1]
+            tmpdf = pd.DataFrame(data = np.vstack([rms, loctype]).T,
+                           columns=['rms', 'loctype'])
+            df = df.join(tmpdf)
+            #print(df)
 
         lonmin, lonmax, latmin, latmax=178.1, 181.3, -39.5, -36
         m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
@@ -1384,11 +1404,17 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
         ax.scatter(x, y, s=100, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=10, label='Relocated epicentre (This study)',
                   path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
 
-        tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
-                   (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
-                   (df['magnitude'] >= 0)]
+        if num == 1:
+            tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                       (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                       (df['magnitude'] >= 0) & ( df['loctype'] == 2 )]
+        else:
+            tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                       (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                       (df['magnitude'] >= 0) ]
+            
         
-        print(len(tmpdf))
+        #print(len(tmpdf))
 
         x, y = m(tmpdf['longitude'], tmpdf['latitude'])
         sc = ax.scatter(x, y, s=1, marker='o', facecolor='k', edgecolor='none', alpha=1, zorder=1)
@@ -1405,7 +1431,7 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
         ax2 = utils.mapTicksBasemap(fig,m,ax,1,1,lonmin,lonmax,latmin,latmax,0)
 
         label = ['S', 'N', 'W', 'E']
-        num = 0
+        tmpind = 0
         for az in [20, 110]:
             for pm in [-1, 1]:
                 tmp = geod.Direct(model_para.lat[0], model_para.lon[0], az, pm*100*1e3)
@@ -1425,10 +1451,10 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
                 elif az == 110 and pm == 1:
                     ha, va = 'left', 'center'
                     color='k'
-                ax.text(x1, y1, label[num], ha=ha, va=va, color=color,
+                ax.text(x1, y1, label[tmpind], ha=ha, va=va, color=color,
                        path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=0.5), path_effects.Normal()])
 
-                num += 1
+                tmpind += 1
 
         for xpanel in range(2):
             if xpanel == 0:
@@ -1464,90 +1490,214 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
             else:
                 ax.set_xticklabels([])
                 
-                
-            histflag = 0
-            if histflag == 1:
-                _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
-                           (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
-                           (df['depth'] != 12.0) & (df['depth'] != 33.0 ) ]
+            if xpanel == 0:
+                histflag = 1
+                if histflag == 1:
+                    if num == 1:
+                        _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                                   (df['origintime'] >= starttime) & (df['origintime'] <= endtime) & ( df['loctype'] == 2 ) ]
+                    else:
+                        _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                                   (df['origintime'] >= starttime) & (df['origintime'] <= endtime) ]
+                        
 
-                _axp = ax.get_position()
-                axhist = fig.add_axes([_axp.x1+0.1, _axp.y0, 0.15, _axp.height])
-                bins = np.arange(0, 1000, 5)
-                axhist.hist(_tmpdf['depth'], bins=bins, orientation='horizontal', color='C7')
-                axhist.set_ylim(0, 155)
-                #axhist.set_xlim(0, 200)
-                axhist.invert_yaxis()
-                axhist.set_ylabel('Depth (km)')
-                axhist.yaxis.set_ticks_position('right')
-                axhist.yaxis.set_label_position('right')
-                axhist.set_xlabel('Count')
-                axhist.set_xscale('log')
-            
+                    _axp = ax.get_position()
+                    axhist = fig.add_axes([_axp.x1+0.12, _axp.y0, 0.2, _axp.height])
+                    bins = np.arange(0, 1000, 5)
+                    axhist.hist(_tmpdf['depth'], bins=bins, orientation='horizontal', color='C7', alpha=0.85)
+                    axhist.set_ylim(0, 155)
+                    axhist.invert_yaxis()
+                    axhist.yaxis.set_ticks_position('right')
+                    axhist.yaxis.set_label_position('right')
+                    axhist.set_xlabel('Count')
+                    axhist.set_xscale('log')
+                    if num == 0:
+                        axhist.set_ylabel('Depth (km)')
+                        
+                    if num == 1:
+                        axhist.set_yticklabels([])
+                    
+                    
+                    '''
+                    _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                               (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                               (df['depth'] != -15.0) & (df['depth'] != -1.0 ) & 
+                               (df['depth'] != 12.0) & (df['depth'] != 33.0 ) & 
+                                (df['depth'] != 1.0 ) & (df['depth'] != 3.0 ) & 
+                                (df['depth'] != 5.0 ) & (df['depth'] != 8.0 ) & 
+                                (df['depth'] != 15.0 ) & (df['depth'] != 23.0 ) & 
+                                (df['depth'] != 30.0 ) & (df['depth'] != 34.0 ) & 
+                                (df['depth'] != 38.0 ) & (df['depth'] != 42.0 ) & 
+                                (df['depth'] != 48.0 ) & (df['depth'] != 55.0 ) & 
+                                (df['depth'] != 65.0 ) & (df['depth'] != 85.0 ) & 
+                                (df['depth'] != 105.0 ) & (df['depth'] != 130.0 ) & 
+                                (df['depth'] != 155.0 ) & (df['depth'] != 185.0 ) & 
+                                (df['depth'] != 225.0 ) & (df['depth'] != 275.0 ) & 
+                                (df['depth'] != 370.0 ) & (df['depth'] != 620.0 ) & 
+                                (df['depth'] != 750.0 )  
+                               ]
+                    
+                    print(len(_tmpdf), 'cut')
+                    #_tmpdf = _tmpdf[ ~((_tmpdf['depth'] >= 47.0 ) & (df['depth'] <= 49.0 )) ]
+                    #print(len(_tmpdf), 'more cut')
+                    
+                    _axp = axhist.get_position()
+                    axhist = fig.add_axes([_axp.x1+0.03, _axp.y0, _axp.width, _axp.height])
+                    axhist.hist(_tmpdf['depth'], bins=bins, orientation='horizontal', color='C7', alpha=0.85)
+                    axhist.set_ylim(0, 155)
+                    #axhist.set_xlim(0, 200)
+                    axhist.invert_yaxis()
+                    axhist.set_ylabel('Depth (km)')
+                    axhist.yaxis.set_ticks_position('right')
+                    axhist.yaxis.set_label_position('right')
+                    axhist.set_xlabel('Count')
+                    axhist.set_xscale('log')
+                    axhist.axhline(12, color='k', lw=0.2, zorder=0)
+                    axhist.axhline(33, color='k', lw=0.2, zorder=0)
+                    data = np.loadtxt('../_materials/aftershockReloc/vmodel.txt')
+                    vdeps = data[:,0]
+                    for vdep in vdeps:
+                        axhist.axhline(vdep, color='k', lw=0.2, zorder=0)
+                    _axp = axhist.get_position()
+                    fig.text(_axp.x0, _axp.y1+0.005, 'eliminated', ha='left', va='bottom', size=8,
+                           path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+                    '''
+                    
+                    if num == 1:
+                        _axp = axhist.get_position()
+                        axrms = fig.add_axes([_axp.x1+0.03, _axp.y0, _axp.width, _axp.height])
 
+                        #_tmpdf.to_csv('ssst_rms.csv')                        
+                        #__tmpdf = _tmpdf[_tmpdf['loctype']==1]
+                        #axrms.scatter(__tmpdf['rms'], __tmpdf['depth'], facecolor='C7', edgecolor='none', s=1, zorder=0)
 
-    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300)
+                        __tmpdf = _tmpdf[_tmpdf['loctype']==2]
+                        rms_std = np.std(__tmpdf['rms'])
+                        rms_mean = np.mean(__tmpdf['rms'])
+                        #print(rms_mean, rms_std)
+                        axrms.scatter(__tmpdf['rms'], __tmpdf['depth'], facecolor='k', edgecolor='none', s=1, zorder=1)
+                        
+                        __tmpdf = __tmpdf.sort_values(by='depth')
+                        #tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(30).mean()
+                        #axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='r', alpha=0.75)    
+                        
+                        tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(10).mean()
+                        tmp = tmp.rolling(10).median()
+                        axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='r', alpha=0.75, zorder=0)    
+
+                        #tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(5).mean()
+                        #axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='cyan', alpha=0.75)    
+
+                        #data = np.loadtxt('../_materials/aftershockReloc/vmodel.txt')
+                        #vdeps = data[:,0]
+                        #for vdep in vdeps:
+                        #    axrms.axhline(vdep, color='k', lw=0.2, zorder=0)
+                        #for vdep in np.arange(0, 150, 10):
+                        #    axrms.axhline(vdep, color='k', lw=0.2, zorder=0)
+                        
+                        
+                        axrms.set_ylim(0, 155)
+                        axrms.invert_yaxis()
+                        axrms.yaxis.set_ticks_position('right')
+                        axrms.yaxis.set_label_position('right')
+                        axrms.set_xlabel('RMS')
+                        axrms.set_ylabel('Depth (km)')
+                        #axrms.set_xscale('log')
+                        axrms.set_xlim(0, rms_mean+rms_std*2)
+                        axrms.set_xticks(np.arange(0, rms_mean+rms_std*2, 1))
+                        #axrms.set_facecolor('whitesmoke')
+                        
+                        
+                        __axp = axrms.get_position()
+                        axrmshist = fig.add_axes([__axp.x0, axp.y0, 0.2, __axp.height*0.7])
+                        __tmpdf = _tmpdf[_tmpdf['loctype']==2]
+                        bins = np.arange(0, np.max(__tmpdf['rms'])+0.1, 0.1)
+                        axrmshist.hist(__tmpdf['rms'], bins=bins, color='C7', alpha=0.85)
+                        axrmshist.yaxis.set_ticks_position('right')
+                        axrmshist.yaxis.set_label_position('right')
+                        axrmshist.set_xlabel('RMS')
+                        axrmshist.set_ylabel('Count')
+                        axrmshist.set_xticks(np.arange(0, np.max(__tmpdf['rms']), 2))
+                        #print(np.max(__tmpdf['rms']))
+                        axrmshist.set_xlim(0, np.max(__tmpdf['rms']))
+                        axrmshist.set_yticks(np.arange(0, 400, 100))
+                        axrmshist.set_ylim(0, 350)
+
+    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300, facecolor='w')
     plt.show()
 
-    
-    
-def seismicityFocalMech(figname):
-    url = 'https://raw.githubusercontent.com/GeoNet/data/main/moment-tensor/GeoNet_CMT_solutions.csv'
-    dfGeoNetCMTData = pd.read_csv(url)
-    dfGeoNetCMTData.Date = pd.to_datetime(dfGeoNetCMTData.Date, format='%Y%m%d%H%M%S')
-    dfGeoNetCMTData.Longitude[dfGeoNetCMTData.Longitude < 0] += 360
 
+def seismicityFocalMech(figname):
     fig = plt.figure(figsize=figsize)
 
+    model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+    j = 13
+    model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
+    
     lonmin, lonmax, latmin, latmax=178.1, 181, -39.5, -36
     m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
               rsphere=(6378137.00,6356752.3142),resolution='i',projection='cyl')
     x, y=m([lonmin, lonmax], [latmin, latmax])
     aspect=abs(max(x)-min(x))/abs(max(y)-min(y))
 
-    axpxloc, axpyloc, axpwidth = 0.1, 0.1,0.4
+    axpyloc, axpwidth = 0.1, 0.4
     mapheight=axpwidth/aspect
-    cmap = cm.batlow
+    figlabels = ['GeoNet', 'GCMT', 'USGS NEIC']
 
-    for j, catalogflag in enumerate(['geonet', 'gcmt']):
-        if catalogflag == 'gcmt':
-            ax=fig.add_axes([axp.x1+0.01, axp.y0, axpwidth, mapheight])
-            axp=ax.get_position()
-            fig.text(axp.x0+0.01, axp.y1-0.01, 'GCMT (Mw≥5, ≤2021-03-11)', ha='left', va='top', fontsize=8,
-                    path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
+    for j, catalogflag in enumerate(['geonet', 'gcmt', 'usgs']):
+        if catalogflag == 'geonet':
+            axpxloc = 0.1
         else:
-            ax=fig.add_axes([axpxloc, axpyloc, axpwidth, mapheight])
             axp=ax.get_position()
-            fig.text(axp.x0+0.01, axp.y1-0.01, 'GeoNet (Mw≥5, ≤2021-03-11)', ha='left', va='top', fontsize=8,
-                    path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
-
-        m.fillcontinents(color='C7', zorder=0, alpha=0.1)
-        m.drawcoastlines(color='k', linewidth=1, zorder=10)
-
-        model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
-        j = 13
-        model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
-
+            axpxloc = axp.x1+0.01
+        ax=fig.add_axes([axpxloc, axpyloc, axpwidth, mapheight])
+        axp=ax.get_position()
+        fig.text(axp.x0+0.01, axp.y1-0.01, figlabels[j], ha='left', va='top', fontsize=8,
+                path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+        
+        # basemap 
+        m.fillcontinents(color='C7', zorder=0, alpha=0)
+        m.drawcoastlines(color='k', linewidth=0, zorder=0)
+        ax2 = utils.mapTicksBasemap(fig,m,ax,1,1,lonmin,lonmax,latmin,latmax,0)
+        utils.drawbathyFocalMech(datarootdir+'work/bathymetry/bathy_cut.nc', fig, ax, m, 0)
+        
+        # trench with indentation
+        xmldoc = minidom.parse(datarootdir+'HikurangiTrench.kml')
+        coordinates = xmldoc.getElementsByTagName('coordinates')[0].firstChild.data.replace('\n', '').replace('\t', '').split()
+        coordinates = np.array([coordinates[i].split(',') for i in range(len(coordinates))]).astype(float)
+        for n in range(len(coordinates)):
+            if coordinates[n,0] < 0: coordinates[n,0] += 360
+        x, y = m(coordinates[:,0], coordinates[:,1])
+        ax.plot(x, y, color=cm.lapaz(255), lw=0.75, linestyle='--', zorder=1, alpha=0.5, label='Trench')
+        
+        if j > 0:
+            ax2.set_yticklabels([])            
         x, y = m(model_para.lon[0], model_para.lat[0])
-        ax.scatter(x, y, s=100, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=10, label='Relocated epicentre (This study)',
+        ax.scatter(x, y, s=300, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=10, label='Relocated epicentre (This study)',
                   path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
-
+        
+        # beachballs
+        ## geonet
+        dfGeoNetCMTData = pd.read_csv(datarootdir+'work/GeoNet_CMT_solutions.csv')
+        ballsize = 8
         if catalogflag == 'geonet':
 
-            for n in range(2):
-                if n == 0:
-                    df = dfGeoNetCMTData[(dfGeoNetCMTData['Date'] >= '1900-03-04') & (dfGeoNetCMTData['Date'] < '2021-03-04') &
-                                         (dfGeoNetCMTData['Mw'] >= 5) & (dfGeoNetCMTData['CD'] <= 10000)]
-                    color_t = 'C7'
-                    zorder_base = 0
-                else:
-                    df = dfGeoNetCMTData[(dfGeoNetCMTData['Date'] >= '2021-03-04') & (dfGeoNetCMTData['Date'] <= '2021-03-11') &
-                                         (dfGeoNetCMTData['Mw'] >= 5) & (dfGeoNetCMTData['CD'] <= 10000)]
-                    color_t = 'C3'
-                    zorder_base = 1000
-                cmap=cm.batlow_r
+            df_before = dfGeoNetCMTData[(dfGeoNetCMTData['Date'] >= '1900-03-04') & (dfGeoNetCMTData['Date'] < '2021-03-04') & 
+                                        (dfGeoNetCMTData['Mw'] >= 5) & (dfGeoNetCMTData['CD'] <= 10000) & 
+                                        (dfGeoNetCMTData['Longitude'] >= lonmin) & (dfGeoNetCMTData['Longitude'] <= lonmax) & 
+                                        (dfGeoNetCMTData['Latitude'] >= latmin) & (dfGeoNetCMTData['Latitude'] <= latmax)]
+            df_after = dfGeoNetCMTData[(dfGeoNetCMTData['Date'] >= '2021-03-04') & (dfGeoNetCMTData['Date'] <= '2021-03-11') &
+                                        (dfGeoNetCMTData['Mw'] >= 5) & (dfGeoNetCMTData['CD'] <= 10000) & 
+                                        (dfGeoNetCMTData['Longitude'] >= lonmin) & (dfGeoNetCMTData['Longitude'] <= lonmax) & 
+                                        (dfGeoNetCMTData['Latitude'] >= latmin) & (dfGeoNetCMTData['Latitude'] <= latmax)]
+            df_main = dfGeoNetCMTData[ dfGeoNetCMTData['PublicID'] == '2021p169083' ]
+
+            for df, color, zorder_base in zip([df_before, df_after, df_main], ['C7', 'C3', 'C5'], [0, 1000, 1001]):
+            
                 for i in range(df.shape[0]):
-                    focmecs=[df.strike1.values[i],df.dip1.values[i],df.rake1.values[i]]
                     x, y = df.Longitude.values[i], df.Latitude.values[i]
                     focmecs = [df.Mxx.values[i],
                                df.Myy.values[i],
@@ -1555,38 +1705,31 @@ def seismicityFocalMech(figname):
                                df.Mxy.values[i],
                                df.Mxz.values[i],
                                df.Myz.values[i]]
-                    tmp = beachball.plot_beachball_mpl(focmecs, ax, size=6, position=(x, y),
-                                             beachball_type='deviatoric', edgecolor='none', color_t=color_t,
-                                             color_p='w', linewidth=0.5, alpha=1, zorder=int(100-df.Mw.values[i]*10)+zorder_base)
-                    tmp = beachball.plot_beachball_mpl(focmecs, ax, size=6, position=(x, y),
-                                             beachball_type='dc', edgecolor='k', color_t='none',
-                                             color_p='none', linewidth=0.5, alpha=1, zorder=int(100-df.Mw.values[i]*10)+zorder_base)
-                    if df.Mw.values[i] == 7.3:
-                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=6, position=(x, y),
-                                                 beachball_type='deviatoric', edgecolor='none', color_t='C5',
-                                                 color_p='w', linewidth=0.5, alpha=1, zorder=int(100-df.Mw.values[i]*10)+zorder_base)
-                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=6, position=(x, y),
-                                                 beachball_type='dc', edgecolor='k', color_t='none',
-                                                 color_p='none', linewidth=0.5, alpha=1, zorder=int(100-df.Mw.values[i]*10)+zorder_base)
+                    
+                    for color_t, color_p, beachball_type, edgecolor in zip([color, 'none'], ['w', 'none'], ['deviatoric', 'dc'], ['none', 'k']):
+                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=ballsize, position=(x, y),
+                                                 beachball_type=beachball_type, edgecolor=edgecolor, color_t=color_t,
+                                                 color_p=color_p, linewidth=0.5, alpha=1, zorder=int(100-df.Mw.values[i]*10)+zorder_base)
 
         elif catalogflag == 'gcmt':
-            # GCMT
-            #'''
             cat = obspy.read_events(datarootdir+'work/SPUD_QUAKEML_bundle.xml')
             for event in cat.events:
-                mag = event.magnitudes[0].mag
-                lon, lat, dep = event.origins[1].longitude, event.origins[1].latitude, event.origins[1].depth
+                # origins[0] is a reference origin, and origins[1] is a CMT origin
+                lon, lat, dep, mag = event.origins[1].longitude, event.origins[1].latitude, event.origins[1].depth, event.magnitudes[0].mag
                 if lon < 0: lon += 360
-                if (event.origins[1].time >= obspy.UTCDateTime('1900-03-04')) and (event.origins[1].time <= obspy.UTCDateTime('2021-03-11')) and \
-                mag >= 5:
-
+                if (event.origins[1].time >= obspy.UTCDateTime('1900-03-04')) and (event.origins[1].time <= obspy.UTCDateTime('2021-03-11')) and mag >= 5:
                     if event.origins[1].time < obspy.UTCDateTime('2021-03-04'):
-                        color_t = 'C7'
+                        color = 'C7'
                         zorder_base = 0
+                        if event.preferred_origin_id == "smi:www.iris.edu/spudservice/momenttensor/gcmtid/C082101B#cmtorigin":
+                            color = 'r'
+                            zorder_base = 1001
                     else:
-                        color_t = 'C3'
+                        color = 'C3'
                         zorder_base = 1000
-
+                        if event.preferred_origin_id == "smi:www.iris.edu/spudservice/momenttensor/gcmtid/C202103041327A#cmtorigin":
+                            color = 'C5'
+                            zorder_base = 2001
                     focmecs=[event.focal_mechanisms[0].moment_tensor.tensor.m_rr,
                              event.focal_mechanisms[0].moment_tensor.tensor.m_tt,
                              event.focal_mechanisms[0].moment_tensor.tensor.m_pp,
@@ -1594,47 +1737,62 @@ def seismicityFocalMech(figname):
                              event.focal_mechanisms[0].moment_tensor.tensor.m_rp,
                              event.focal_mechanisms[0].moment_tensor.tensor.m_tp]
                     focmecs = utils.convertUSEtoNED(focmecs)
-                    x, y = m(lon, lat)
+                    x, y = m(lon, lat)                    
+                    for color_t, color_p, beachball_type, edgecolor in zip([color, 'none'], ['w', 'none'], ['deviatoric', 'dc'], ['none', 'k']):
+                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=ballsize, position=(x, y),
+                                                 beachball_type=beachball_type, edgecolor=edgecolor, color_t=color_t,
+                                                 color_p=color_p, linewidth=0.5, alpha=1, zorder=int(100-mag*10)+zorder_base)
+                        
+        elif catalogflag == 'usgs':
+            cat = obspy.read_events(datarootdir+'work/quakeml_USGS_MomentTensor.xml')
+            for event in cat.events:
+                lon, lat, dep, mag = float(event.origins[0].longitude), float(event.origins[0].latitude), float(event.origins[0].depth), event.magnitudes[0].mag
+                if lon < 0: lon += 360
+                if (event.origins[0].time >= obspy.UTCDateTime('1900-03-04')) and (event.origins[0].time <= obspy.UTCDateTime('2021-03-11')) and mag >= 5:
 
-                    size = 6
-
-                    tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
-                                             beachball_type='deviatoric', edgecolor='none', color_t=color_t,
-                                             color_p='w', linewidth=0.5, alpha=1, zorder=int(100-mag*10)+zorder_base)
-                    tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
-                                             beachball_type='dc', edgecolor='k', color_t='none',
-                                             color_p='none', linewidth=0.5, alpha=1, zorder=int(100-mag*10)+zorder_base)
-                    if mag == 7.2:
-                        #print(lon, lat)
-                        #print(event)
-                        #print(focmecs)
-                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
-                                                 beachball_type='deviatoric', edgecolor='none', color_t='C5',
-                                                 color_p='w', linewidth=0.5, alpha=1, zorder=int(100)+zorder_base+1000)
-                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
-                                                 beachball_type='dc', edgecolor='k', color_t='none',
-                                                 color_p='none', linewidth=0.5, alpha=1, zorder=int(100)+zorder_base+1000)
-            #'''
-
-
-        src = shapefile.Reader(datarootdir+'work/tectonicplates/PB2002_boundaries.shp')
-        for tmp in src.shapeRecords():
-            x = [i[0] for i in tmp.shape.points[:]]
-            y = [i[1] for i in tmp.shape.points[:]]
-            for n in range(len(x)):
-                if x[n] < 0:
-                    x[n] = x[n] + 360
-            x, y = m(x, y)
-            ax.plot(x, y, color='C7', lw=0.5, linestyle='--', zorder=0)
-        ax.plot([], [], color='C7', lw=0.5, linestyle='--', label='Trench (Bird, 2003)')
-        ax2 = utils.mapTicksBasemap(fig,m,ax,1,1,lonmin,lonmax,latmin,latmax,0)
-
-        ax.legend(loc='lower right', fontsize=6).set_zorder(1000)
-        if catalogflag == 'gcmt':
-            ax2.set_yticklabels([])
-
-    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300)
+                    if event.origins[0].time < obspy.UTCDateTime('2021-03-04'):
+                        color = 'C7'
+                        zorder_base = 0
+                        if event.preferred_origin_id == "quakeml:earthquake.usgs.gov/product/origin/usp000amsn/us/1415322814995/product.xml":
+                            color = 'r'
+                            zorder_base = 1001
+                    else:
+                        color = 'C3'
+                        zorder_base = 1000
+                        if event.preferred_origin_id == "quakeml:earthquake.usgs.gov/product/origin/us7000dffl/us/1620945817040/product.xml":
+                            color = 'C5'
+                            zorder_base = 2001
+                    for focal_mechanism in event.focal_mechanisms:
+        
+                        if focal_mechanism.creation_info.agency_id == 'us' or \
+                        focal_mechanism.creation_info.agency_id == 'LD' or \
+                        focal_mechanism.creation_info.agency_id == 'US' or \
+                        focal_mechanism.creation_info.agency_id == 'HRV':
+                            try:
+                                focmecs=[focal_mechanism.moment_tensor.tensor.m_rr,
+                                         focal_mechanism.moment_tensor.tensor.m_tt,
+                                         focal_mechanism.moment_tensor.tensor.m_pp,
+                                         focal_mechanism.moment_tensor.tensor.m_rt,
+                                         focal_mechanism.moment_tensor.tensor.m_rp,
+                                         focal_mechanism.moment_tensor.tensor.m_tp]
+                                focmecs = utils.convertUSEtoNED(focmecs)
+                            except:
+                                focmecs=[focal_mechanism.nodal_planes.nodal_plane_1.strike,
+                                         focal_mechanism.nodal_planes.nodal_plane_1.dip,
+                                         focal_mechanism.nodal_planes.nodal_plane_1.rake]
+                            break
+    
+                    x, y = m(lon, lat)                    
+                    for color_t, color_p, beachball_type, edgecolor in zip([color, 'none'], ['w', 'none'], ['deviatoric', 'dc'], ['none', 'k']):
+                        tmp = beachball.plot_beachball_mpl(focmecs, ax, size=ballsize, position=(x, y),
+                                                 beachball_type=beachball_type, edgecolor=edgecolor, color_t=color_t,
+                                                 color_p=color_p, linewidth=0.5, alpha=1, zorder=int(100-mag*10)+zorder_base)
+    
+    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=200, facecolor='w')
     plt.show()
+    
+    
+    
     
     
 def wphase(figname):

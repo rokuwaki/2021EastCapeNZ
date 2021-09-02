@@ -27,7 +27,21 @@ def main():
     response = requests.get(URL)
     with open(os.path.join(outdir, 'quakeml_USGS_Wphase.xml'), 'wb') as file:
         file.write(response.content)
+        
+    # USGS Moment tensors
+    URL = 'https://earthquake.usgs.gov/fdsnws/event/1/query.quakeml?starttime=1900-08-24%2000:00:00&endtime=2021-08-31%2023:59:59&maxlatitude=-36&minlatitude=-40&maxlongitude=182&minlongitude=177&minmagnitude=5&includeallorigins=true&includeallmagnitudes=true&orderby=time&producttype=moment-tensor'
+    response = requests.get(URL)
+    with open(os.path.join(outdir, 'quakeml_USGS_MomentTensor.xml'), 'wb') as file:
+        file.write(response.content)
+    
+    # GeoNet CMT solution
+    url = 'https://raw.githubusercontent.com/GeoNet/data/main/moment-tensor/GeoNet_CMT_solutions.csv'
+    dfGeoNetCMTData = pd.read_csv(url)
+    dfGeoNetCMTData.Date = pd.to_datetime(dfGeoNetCMTData.Date, format='%Y%m%d%H%M%S')
+    dfGeoNetCMTData.Longitude[dfGeoNetCMTData.Longitude < 0] += 360
+    dfGeoNetCMTData.to_csv(os.path.join(outdir, 'GeoNet_CMT_solutions.csv'))
 
+    
     # NZ station information
     url = 'http://beta-service.geonet.org.nz/fdsnws/station/1/query?&format=text&level=station&network=NZ&starttime=2021-03-04T13:21:00'
     urlData = requests.get(url).content

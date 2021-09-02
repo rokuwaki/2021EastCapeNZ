@@ -59,10 +59,10 @@ def drawRCMT(fig, ax, m, datarootdir, axes, model_para):
         color_t = mpl.colors.rgb2hex(cmaprcmt(1/5))
     tmp = beachball.plot_beachball_mpl(focmecs[i], ax, size=dx*3, position=(x, y),
                              beachball_type='dc', edgecolor=color_t, color_t=color_t,
-                             color_p='w', linewidth=0.5, alpha=0.5, zorder=100)
+                             color_p='w', linewidth=0.5, alpha=0.75, zorder=100)
     tmp = beachball.plot_beachball_mpl(focmecs[i], ax, size=dx*3, position=(x, y),
                              beachball_type='dc', edgecolor='k', color_t='none',
-                             color_p='none', linewidth=0.5, alpha=1, zorder=100)
+                             color_p='none', linewidth=0.75, alpha=1, zorder=100)
     ax.text(x, y-0.025, 'R-CMT\n'+r'$z=$'+str(cmtdepth)+' km', ha='center', va='top', fontsize=8, color='k',
             path_effects=[path_effects.Stroke(linewidth=1, foreground='w', alpha=1), path_effects.Normal()])
     
@@ -171,7 +171,7 @@ def drawslip3D(datarootdir, model_para, modelid, fig, ax, axlabel, lon, lat, dep
                     path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
     sc=ax.scatter(model_para.lon[0]-0.1, model_para.lat[0]-0.014, model_para.depth[0]-3.4, marker='*', s=100, edgecolor='k', facecolor='w', zorder=1000)
     sc.set_path_effects([path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
-
+    
     axp = axlabel.get_position()
     cax=fig.add_axes([axp.x1-0.15, axp.y0+0.3, 0.01, axp.height*0.4])
     norm=mpl.colors.Normalize(vmin=0, vmax=max(slip))
@@ -187,9 +187,9 @@ def drawbaseframe3D(model_para, fig, ax, azim, elev):
     latmax=model_para.lat[0]+0.75*0.5
 
     ax.view_init(azim=azim, elev=elev)
-    ax.set_zlim(0., 110)
-    ax.set_xlim(lonmin, lonmax)
-    ax.set_ylim(latmin, latmax)
+    ax.set_zlim(7, 110-8)
+    ax.set_xlim(lonmin-0.1, lonmax+0.1)
+    ax.set_ylim(latmin-0.06, latmax+0.06)
     ax.invert_zaxis()
     ax.xaxis.pane.set_facecolor('none')
     ax.yaxis.pane.set_facecolor('none')
@@ -248,9 +248,9 @@ def drawbaseframe3D(model_para, fig, ax, azim, elev):
         ax.text(lonmin-0.15, latmax, ztick, str(ztick), ha='right', va='center')
 
     ax.view_init(azim=azim, elev=elev)
-    ax.set_zlim(0., 110)
-    ax.set_xlim(lonmin, lonmax)
-    ax.set_ylim(latmin, latmax)
+    ax.set_zlim(7, 110-8)
+    ax.set_xlim(lonmin-0.1, lonmax+0.1)
+    ax.set_ylim(latmin-0.06, latmax+0.06)
     ax.invert_zaxis()
     ax.xaxis.pane.set_facecolor('none')
     ax.yaxis.pane.set_facecolor('none')
@@ -264,7 +264,7 @@ def drawbaseframe3D(model_para, fig, ax, azim, elev):
     axlabel.text(0.8, 0.1, 'Longitude ($\degree$)', ha='left', va='bottom', rotation=65)
     axlabel.text(0.12, 0.4, 'Depth (km)', ha='right', va='center', rotation=92)
     
-    x0, y0 = 0.33, 0.18
+    x0, y0 = 0.335, 0.175
     theta, scale = 176.5, 0.1
     x1, y1 = x0+np.cos(np.deg2rad(theta))*scale, y0+np.sin(np.deg2rad(theta))*scale
     axlabel.annotate('N', xytext=(x1,y1), xy=(x0, y0), arrowprops=dict(arrowstyle="<-", linewidth=0.75, color='k'))
@@ -275,21 +275,21 @@ def drawbaseframe3D(model_para, fig, ax, azim, elev):
     return ax, axlabel
 
 
-def drawlabels(elat, elon, ax, m):
+def drawlabels(elat, elon, ax, m, lonmin, lonmax, latmin, latmax):
     x, y=m(elon-0.1, elat)
-    text=ax.text(x, y, r'$M_{\rm{W}}$ 7.3 2021-03-04', fontsize=8, ha='right', va='center', zorder=100,)
+    text=ax.text(x, y, r'$M_{\rm{W}}$ 7.3 2021-03-04', fontsize=8, ha='right', va='center', zorder=1000,)
     text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
 
     x, y=m(179.7, -37.9)
-    text=ax.text(x, y, 'Ruatoria\nIndentation', fontsize=8, ha='left', va='top', zorder=100,)
+    text=ax.text(x, y, 'Ruatoria\nIndentation', fontsize=8, ha='left', va='top', zorder=1000,)
     text.set_path_effects([path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
 
     x, y=m(179.4, -38.6)
-    text=ax.text(x, y, 'Hikurangi margin', fontsize=8, ha='left', va='top', zorder=100,)
+    text=ax.text(x, y, 'Hikurangi margin', fontsize=8, ha='left', va='top', zorder=1000,)
     text.set_path_effects([path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
 
     x, y=m(180.35, -37.1)
-    text=ax.text(x, y, 'Kermadec trench', fontsize=8, ha='center', va='center', zorder=100, rotation=57)
+    text=ax.text(x, y, 'Kermadec trench', fontsize=8, ha='center', va='center', zorder=1000, rotation=57)
     text.set_path_effects([path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
     
     plon, plat, azi, vel = [180.6, 180.4, 180.2], [-37.8, -38.37, -38.9], [262.61, 262.17, 261.72], [46.40, 45.38, 44.37]
@@ -302,16 +302,41 @@ def drawlabels(elat, elon, ax, m):
                          arrowprops=dict(arrowstyle="simple,head_length=0.3,head_width=0.3,tail_width=0.1", edgecolor='w', facecolor='k', lw=0.2))
 
         x, y = m(g['lon2']+0.05, g['lat2']-0.02)
-        text=ax.text(x, y, '{:.1f}'.format(vel[i])+' mm/yr', va='top', ha='left', size=6, color='k',
+        text=ax.text(x, y, '{:.1f}'.format(vel[i])+' mm/yr', va='top', ha='left', size=6, color='k', zorder=1000,
                     path_effects=[path_effects.Stroke(linewidth=1, foreground='w', alpha=0.75), path_effects.Normal()])
+        
+    tmp = geod.Direct(latmin+0.2, lonmax-0.05, -90, 50*1e3)
+    if tmp['lon1'] < 0: tmp['lon1'] += 360
+    if tmp['lon2'] < 0: tmp['lon2'] += 360
+    x0, y0 = m(tmp['lon1'], tmp['lat1'])
+    x1, y1 = m(tmp['lon2'], tmp['lat2'])
+    ax.plot([x0, x1],[y0, y1],color='k',lw=1.2,
+            path_effects=[path_effects.Stroke(linewidth=2.2, foreground='w', alpha=1), path_effects.Normal()], solid_capstyle='butt', zorder=1000)
+    tmp = geod.Direct(latmin+0.15, lonmax-0.05, -90, 25*1e3)
+    if tmp['lon2'] < 0: tmp['lon2'] += 360
+    x, y = m(tmp['lon2'], tmp['lat2'])
+    text=ax.text(x, y, '50 km', va='top', ha='center', size=8, color='k',
+                path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()], zorder=1000)
+    
+    
+    x, y = m(178.5483, -37.6892)
+    ax.scatter(x, y, marker='s', facecolor='ivory', edgecolor='k', linewidth=0.75, s=15, zorder=1000)
+    ax.text(x, y-0.03, 'East Cape', fontsize=8, zorder=1000, va='top', ha='left',
+            path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])    
+    
+    
     
 
 
-def drawbeachball(data,datarootdir,lonmin,lonmax,latmin,latmax,ax,m):
+def drawbeachball(data,datarootdir,lonmin,lonmax,latmin,latmax,ax,m, fig):
+
+    vmin, vmax = 0, 100
+    cmap=cm.batlowK_r
+    depths = []
     cat_gcmt = obspy.read_events(data)
     for event in cat_gcmt.events:
         mag = event.magnitudes[0].mag
-        lon, lat, dep = event.origins[1].longitude, event.origins[1].latitude, event.origins[1].depth
+        lon, lat, dep = event.origins[1].longitude, event.origins[1].latitude, event.origins[1].depth * 1e-3
         if lon < 0: lon += 360
         if lon > lonmin+0.01 and lon < lonmax-0.01 and lat > latmin+0.01 and lat < latmax-0.01 and event.origins[0].time <= obspy.UTCDateTime('2021-03-04'):
             focmecs=[event.focal_mechanisms[0].moment_tensor.tensor.m_rr,
@@ -329,23 +354,25 @@ def drawbeachball(data,datarootdir,lonmin,lonmax,latmin,latmax,ax,m):
             else:
                 size = 4
 
+            depths.append(dep)
             x, y = m(lon, lat)
             tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
-                                     beachball_type='deviatoric', edgecolor='none', color_t='C7',
-                                     color_p='w', linewidth=0.5, alpha=1, zorder=int(100-mag*10))
+                                     beachball_type='deviatoric', edgecolor='none', color_t=cmap(dep/vmax),
+                                     color_p='w', linewidth=0.75, alpha=1, zorder=int(100-mag*10))
             tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
                                      beachball_type='dc', edgecolor='k', color_t='none',
-                                     color_p='none', linewidth=0.5, alpha=1, zorder=int(100-mag*10))
+                                     color_p='none', linewidth=0.75, alpha=1, zorder=int(100-mag*10))
 
             if event.resource_id == 'smi:service.iris.edu/fdsnws/event/1/query?eventid=11384594': # mainshock
                 tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
                                          beachball_type='deviatoric', edgecolor='none', color_t='C5',
-                                         color_p='w', linewidth=0.5, alpha=1, zorder=int(100))
+                                         color_p='w', linewidth=0.75, alpha=1, zorder=int(100))
                 tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
                                          beachball_type='dc', edgecolor='k', color_t='none',
-                                         color_p='none', linewidth=0.5, alpha=1, zorder=int(100))
-                
-    loclist = ([lonmin+0.18, latmax-0.18], [lonmin+0.18, latmax-0.195], [lonmin+0.18, latmax-0.255])
+                                         color_p='none', linewidth=0.75, alpha=1, zorder=int(100))
+        
+    
+    loclist = ([lonmin+0.18, latmax-0.18], [lonmin+0.18, latmax-0.23], [lonmin+0.18, latmax-0.26])
     sizelist = [16, 8, 4]
     for loc, size in zip(loclist, sizelist):
         x, y = m(loc[0]-0.035, loc[1]+0.035)
@@ -353,15 +380,18 @@ def drawbeachball(data,datarootdir,lonmin,lonmax,latmin,latmax,ax,m):
         focmecs = convertUSEtoNED(focmecs)
         tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
                                  beachball_type='deviatoric', edgecolor='none', color_t='C7',
-                                 color_p='w', linewidth=0.5, alpha=1, zorder=int(111))
+                                 color_p='w', linewidth=0.75, alpha=1, zorder=int(111))
         tmp = beachball.plot_beachball_mpl(focmecs, ax, size=size, position=(x, y),
                                  beachball_type='dc', edgecolor='k', color_t='none',
-                                 color_p='none', linewidth=0.5, alpha=1, zorder=int(111))
+                                 color_p='none', linewidth=0.75, alpha=1, zorder=int(111))
     ax.scatter([], [], label=r'$M_{\rm{W}} \geq 7$', s=0)
     ax.scatter([], [], label=r'$M_{\rm{W}} \geq 5$', s=0)
     ax.scatter([], [], label=r'$M_{\rm{W}} \geq 3$', s=0)
     ax.legend(loc='upper left', fontsize=6, labelspacing=0.01, handletextpad=1, borderpad=0.5).set_zorder(110)
 
+    ax.set_rasterization_zorder(112)
+    
+    
     meclocs, mos, focmecs, labels = loadmecs(datarootdir)
     meclocs_fix_lon = np.linspace(179.3, 180.25, 4)
     meclocs_fix_lat = np.ones(4) * -36.45
@@ -374,16 +404,24 @@ def drawbeachball(data,datarootdir,lonmin,lonmax,latmin,latmax,ax,m):
         size=16
         tmp = beachball.plot_beachball_mpl(focmecs[i], ax, size=size, position=(x1, y1),
                                  beachball_type='deviatoric', edgecolor='none', color_t=colors[i],
-                                 color_p='w', linewidth=0.5, alpha=1, zorder=int(111))
+                                 color_p='w', linewidth=0.75, alpha=1, zorder=int(111))
         tmp = beachball.plot_beachball_mpl(focmecs[i], ax, size=size, position=(x1, y1),
                                  beachball_type='dc', edgecolor='k', color_t='none',
-                                 color_p='none', linewidth=0.5, alpha=1, zorder=int(111))
+                                 color_p='none', linewidth=0.75, alpha=1, zorder=int(111))
         x, y = m(meclocs_fix_lon[i], meclocs_fix_lat[i]+0.16)
-        ax.text(x, y-0.02, labels[i], fontsize=6, ha='center', va='center', zorder=100,
+        ax.text(x, y-0.02, labels[i], fontsize=6, ha='center', va='center', zorder=1000,
                      path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
+        
+    
+    axp = ax.get_position()
+    tmpshift =  0.7153846153846172/4 - 0.28636363636363635/2
+    cax=fig.add_axes([axp.x1+0.005, axp.y1-(axp.height/4)*2-tmpshift, 0.01, axp.height/4])
+    norm=mpl.colors.Normalize(vmin=0, vmax=vmax)
+    cb=mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, label='Depth (km)', ticks=np.arange(vmin, vmax+25, 25))
+    cax.invert_yaxis()
     
 
-
+    
 def drawbasemap(fig,lonmin,lonmax,latmin,latmax,axpxloc,axpyloc,axpwidth,tickintx,tickinty,tickformat,coastflag=0,resolution='i',continentalpha=0):
     m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,rsphere=(6378137.00,6356752.3142),resolution=resolution,projection='cyl')
     x, y=m([lonmin, lonmax], [latmin, latmax])
@@ -395,6 +433,7 @@ def drawbasemap(fig,lonmin,lonmax,latmin,latmax,axpxloc,axpyloc,axpwidth,tickint
         m.drawcoastlines(color='k', linewidth=0.5, zorder=0)
     ax2 = mapTicksBasemap(fig,m,ax,tickintx,tickinty,lonmin,lonmax,latmin,latmax,tickformat)
     return m, ax, ax2
+
 
 
 # mpl-ish tick style for Basemap
@@ -496,10 +535,32 @@ def drawbathy(data, fig, ax, m):
     cf = ax.contourf(lons, lats, tmax, levels=np.arange(vmin, vmax+620, 620), cmap=cm.lapaz, alpha=0.75, antialiased=True)
     ax.contour(lons, lats, tmax, levels=np.arange(vmin, vmax, 620), zorder=10, linewidths=0.3, colors='k')
     ax.contour(lons, lats, tmax, levels=np.arange(0, 0+620, 620), zorder=10, linewidths=0.5, colors='k')
-    
+    ax.set_rasterization_zorder(11)
+
     axp = ax.get_position()
-    cax=fig.add_axes([axp.x1+0.005, axp.y1-axp.height/2, 0.01, axp.height/2])
-    plt.colorbar(cf, cax=cax, label='Elevation (m)')
+    cax=fig.add_axes([axp.x1+0.005, axp.y1-axp.height/4, 0.01, axp.height/4])
+    plt.colorbar(cf, cax=cax, label='Elevation (m)', ticks=np.linspace(vmin, vmax, 5).astype(int))
+    cax.set_rasterization_zorder(11)
+    
+def drawbathyFocalMech(data, fig, ax, m, cbarflag):
+    fh = Dataset(data, mode='r')
+    lons = fh.variables['lon'][:]; lats = fh.variables['lat'][:]; tmax = fh.variables['z'][:]
+    fh.close()
+    vmin, vmax = -6200, 0
+    ls = LightSource(azdeg=225, altdeg=75)
+    rgb = ls.shade(tmax, cmap=cm.grayC_r, vmin=vmin, vmax=vmax)
+    im = ax.imshow(rgb, origin='lower',alpha=0.3, zorder=-1, interpolation='gaussian')
+    x0 = m(np.min(lons), np.min(lats))
+    x1 = m(np.max(lons), np.max(lats))
+    im.set_extent([x0[0], x1[0], x0[1], x1[1]])
+    cf = ax.contourf(lons, lats, tmax, levels=np.arange(vmin, vmax+620, 620), cmap=cm.lapaz, alpha=0.3, antialiased=True)
+    #ax.contour(lons, lats, tmax, levels=np.arange(vmin, vmax, 620), zorder=10, linewidths=0.3, colors='k')
+    ax.contour(lons, lats, tmax, levels=np.arange(0, 0+620, 620), zorder=10, linewidths=0.5, colors='k')
+
+    #if cbarflag == 1:
+    #    axp = ax.get_position()
+    #    cax=fig.add_axes([axp.x1+0.005, axp.y0, 0.01, axp.height/4])
+    #    plt.colorbar(cf, cax=cax, label='Elevation (m)', ticks=np.linspace(vmin, vmax, 5).astype(int))
 
     
 # connvert coordinates of moment tensor from USE to NED
