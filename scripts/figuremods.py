@@ -676,6 +676,9 @@ def dcpopulation(figname):
             tmpxlist = [tmpx-dx/2, tmpx+dx/2, tmpx+dx/2, tmpx-dx/2, tmpx-dx/2]
             tmpylist = [tmpy-dy/2, tmpy-dy/2, tmpy+dy/2, tmpy+dy/2, tmpy-dy/2]
             ax.fill(tmpxlist, tmpylist, facecolor=cmap(slip[i]/max(slip)), edgecolor='none', zorder=0)
+            #if slip[i] >= 0.4 * max(slip):
+            #    ax.fill(tmpxlist, tmpylist, facecolor='none', edgecolor='k', zorder=0)
+                
 
 
         arrowflag = 'beach'
@@ -787,6 +790,122 @@ def dcpopulation(figname):
     plt.savefig(figname, pad_inches=0.1, dpi=150, bbox_inches="tight")
     plt.show()
 
+    
+
+def dcpopulation_only_crosssection(figname):
+    
+    models = (np.loadtxt(datarootdir+'modellist.txt', usecols=0, dtype=int)).astype(str)
+    for model in models[13:14]:
+        model_para = utils.load_fort40(os.path.join(datarootdir, 'model_'+model, 'fort.40'))
+        fig=plt.figure(figsize=figsize)
+        axx0, axy0 = 0.1, 0.1
+        axw = 0.35
+
+        aspect = (model_para.xx[0] * model_para.mn[0])/(model_para.yy[0] * model_para.nn[0])
+        axh = axw / aspect
+
+        ax = fig.add_axes([axx0, axy0, axw, axh])
+        axp = ax.get_position()
+
+        data = np.loadtxt(os.path.join(datarootdir, 'model_'+model, 'FFM_DCall.txt'), skiprows=1)
+        lon,lat,dep,slip = data[:,1],data[:,2],data[:,3],data[:,4]
+        strike0,dip0,rake0,strike1,dip1,rake1 = data[:,5],data[:,6],data[:,7],data[:,8],data[:,9],data[:,10]
+        xloc,yloc = data[:,11],data[:,12]
+
+        data=np.loadtxt(os.path.join(datarootdir, 'model_'+model, 'FFM_MT.txt'))
+        m1,m2,m3,m4,m5,m6 = data[:,4],data[:,5],data[:,6],data[:,7],data[:,8],data[:,9]
+
+        strike, dip, rake = [],[],[]
+        for i in range(len(strike0)):
+            tmpstr, tmpdip, tmprake = utils.selectplane(model_para.strike[0],model_para.dip[0],strike0[i],dip0[i],rake0[i],strike1[i],dip1[i],rake1[i])
+            strike.append(tmpstr)
+            dip.append(tmpdip)
+            rake.append(tmprake)
+
+        dx, dy = model_para.xx[0], model_para.yy[0]
+        xmin, xmax = np.min(xloc)-dx/2, np.max(xloc)+dx/2
+        ymin, ymax = np.min(yloc)-dy/2, np.max(yloc)+dy/2
+        cmap = cm.bilbao
+
+        for i in np.arange(len(slip)):
+            tmpx, tmpy = xloc[i], yloc[i]
+            tmpxlist = [tmpx-dx/2, tmpx+dx/2, tmpx+dx/2, tmpx-dx/2, tmpx-dx/2]
+            tmpylist = [tmpy-dy/2, tmpy-dy/2, tmpy+dy/2, tmpy+dy/2, tmpy-dy/2]
+            ax.fill(tmpxlist, tmpylist, facecolor=cmap(slip[i]/max(slip)), edgecolor='none', zorder=0)
+                
+
+
+        arrowflag = 'beach'
+        x, y = xloc, yloc
+        for i in range(len(strike)):
+            if arrowflag == 'rake':
+                a=np.deg2rad(rake[i])
+                length=slip[i] / max(slip) * dx
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i], x1+x[i]], [y[i], y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+                x2, y2 =np.cos(a-np.deg2rad(150))*length*0.2, np.sin(a-np.deg2rad(150))*length*0.2
+                ax.plot([x1+x[i], x1+x2+x[i]], [y1+y[i], y1+y2+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+                x2, y2 =np.cos(a+np.deg2rad(150))*length*0.2, np.sin(a+np.deg2rad(150))*length*0.2
+                ax.plot([x1+x[i], x1+x2+x[i]], [y1+y[i], y1+y2+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+
+            elif arrowflag == 'strike':
+                a=np.deg2rad(-strike[i]+90)
+                length=slip[i] / max(slip) * dx
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i]-x1, x1+x[i]], [y[i]-y1, y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)            
+
+            elif arrowflag == 'dip':
+                a=np.deg2rad(dip[i]-180)
+                length=slip[i] / max(slip) * dy
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i]-x1, x1+x[i]], [y[i]-y1, y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+
+            elif arrowflag == 'beach':
+                focmec = [m1[i],m2[i],m3[i],m4[i],m5[i],m6[i]]
+                focmec = utils.convertUSEtoNED(focmec)
+                tmp = beachball.plot_beachball_mpl(focmec, ax, size=dx*1.5, position=(x[i], y[i]),
+                                         beachball_type='deviatoric', edgecolor='none', color_t=cmap(slip[i]/max(slip)),
+                                         color_p='w', linewidth=0.5, alpha=1, zorder=1, view='top')
+                tmp = beachball.plot_beachball_mpl(focmec, ax, size=dx*1.5, position=(x[i], y[i]),
+                                         beachball_type='dc', edgecolor='k', color_t='none',
+                                         color_p='none', linewidth=0.5, alpha=1, zorder=1, view='top')
+
+        ax.scatter(0, 0, marker='*', s=500, facecolor='none', edgecolor='k', 
+                   path_effects = [path_effects.Stroke(linewidth=2, foreground='w'), path_effects.Normal()])
+
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
+        #ax.set_xlabel('Strike (km)')
+        #ax.set_ylabel('Dip (km)')
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        if model_para.dip[0] > 0:
+            ax2 = ax.twinx()
+            depmin = model_para.depth[0]-np.sin(np.deg2rad(model_para.dip[0]))*ymin
+            depmax = model_para.depth[0]-np.sin(np.deg2rad(model_para.dip[0]))*ymax
+            ax2.set_ylim(depmin, depmax)
+            #ax2.set_ylabel('Depth (km)')
+            ax2.set_yticklabels([])
+            cax = fig.add_axes([axp.x1+0.06, axp.y0+0.1, 0.01, axp.height/4])
+        else:
+            cax = fig.add_axes([axp.x1+0.005, axp.y0, 0.01, axp.height/4])
+
+        norm = mpl.colors.Normalize(vmin=0, vmax=np.max(slip))
+        mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=np.linspace(0,np.max(slip),3), format='%.2f')
+        cax.set_yticklabels('')
+
+
+        #plt.savefig('slip_'+arrowflag+'_'+model+'.png', bbox_inches='tight', pad_inches=0.1, dpi=300)        
+        #plt.show()    
+    plt.savefig(figname, pad_inches=0.1, dpi=300, bbox_inches="tight", facecolor='w')
+    plt.show()
+    
+    
+
+    
     
 def geometryFFM(figname, j, geomflag):
     fig = plt.figure(figsize=(5.4, 5.4))
@@ -1629,6 +1748,313 @@ def relocAftershock(figname, original, relocated, starttime, endtime):
     plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300, facecolor='w')
     plt.show()
 
+    
+    
+    
+    
+    
+def regularseismicityGeoNet(figname, original, relocated, starttime, endtime):
+    fig = plt.figure(figsize=figsize)
+    for num,inputcatalog in enumerate([original, relocated]):
+        model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+        j = 13 # optimum model
+        model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
+        elon, elat, edep = model_para.lon[0], model_para.lat[0], model_para.depth[0]
+
+        data = np.loadtxt(inputcatalog, usecols=(8,7,9))
+        np.savetxt(datarootdir+'work/tmp.txt', data)
+        #print(len(data))
+
+        command = ['gmt','project',datarootdir+'work/tmp.txt','-C'+str(elon)+'/'+str(elat),'-A20','-Q','>',
+                   datarootdir+'work/tmp_proj_20.txt']
+        process = subprocess.Popen(command,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        
+        if num == 1:
+            data = np.loadtxt(inputcatalog, usecols=(17,19))
+            np.savetxt(datarootdir+'work/tmp_rms.txt', data)
+            
+            
+        
+
+        data = np.loadtxt(inputcatalog, usecols=(1,2,3,4,5,6,10))
+        year,month,day,hour,minute,sec,mag = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4],data[:,5],data[:,6]
+
+        for n in range(len(sec)):
+            if sec[n] == 60.0: sec[n] = 59.99999
+
+        tmp_time = np.array([ obspy.UTCDateTime(str(int(year[i]))+'-'+str(int(month[i]))+'-'+str(int(day[i]))+'T'+str(int(hour[i]))+':'+str(int(minute[i]))+':'+str(sec[i])) for i in range(len(year)) ])
+
+        data = np.loadtxt(datarootdir+'work/tmp_proj_20.txt')
+        lon, lat, dep, x, y = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4]*-1
+        for n in range(len(lon)):
+            if lon[n] < 0: lon[n] += 360
+
+        df = pd.DataFrame(data = np.vstack([tmp_time, lat, lon, dep, mag, x, y]).T,
+                           columns=['origintime', 'latitude', 'longitude', 'depth', 'magnitude', 'projx', 'projy'])
+        
+        if num == 1:
+            tmpdata = np.loadtxt(datarootdir+'work/tmp_rms.txt')
+            rms, loctype= tmpdata[:,0],tmpdata[:,1]
+            tmpdf = pd.DataFrame(data = np.vstack([rms, loctype]).T,
+                           columns=['rms', 'loctype'])
+            df = df.join(tmpdf)
+            #print(df)
+
+        lonmin, lonmax, latmin, latmax=178.1, 181.3, -39.5, -36
+        m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
+                  rsphere=(6378137.00,6356752.3142),resolution='i',projection='cyl')
+        x, y=m([lonmin, lonmax], [latmin, latmax])
+        aspect=abs(max(x)-min(x))/abs(max(y)-min(y))
+
+        axpxloc, axpyloc, axpwidth = 0.1, 0.1,0.5
+        if num == 1:
+            axpyloc = axp0.y0-axp.height-0.1
+        mapheight=axpwidth/aspect
+
+        ax=fig.add_axes([axpxloc, axpyloc, axpwidth, mapheight])
+        axp=ax.get_position()
+        if num == 0:
+            axp0 = axp
+            label = 'Original location (GeoNet)'
+        elif num == 1:
+            label = 'Relocation'
+        fig.text(axp.x0+0.01, axp.y1-0.01, label, ha='left', va='top', size=8,
+               path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+        fig.text(axp.x0+0.01, axp.y0+0.01, 'From '+starttime[0:10]+' to '+endtime[0:10], ha='left', va='bottom', size=8,
+               path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+
+        x, y = m(model_para.lon[0], model_para.lat[0])
+        ax.scatter(x, y, s=100, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=10, label='Relocated epicentre (This study)',
+                  path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+
+        if num == 1:
+            tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                       (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                       (df['magnitude'] >= 0) & ( df['loctype'] == 2 )]
+        else:
+            tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                       (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                       (df['magnitude'] >= 0) ]
+            
+        
+        #print(len(tmpdf))
+
+        x, y = m(tmpdf['longitude'], tmpdf['latitude'])
+        sc = ax.scatter(x, y, s=1, marker='o', facecolor='k', edgecolor='none', alpha=1, zorder=1)
+
+        src = shapefile.Reader(datarootdir+'work/tectonicplates/PB2002_boundaries.shp')
+        for tmp in src.shapeRecords():
+            x = [i[0] for i in tmp.shape.points[:]]
+            y = [i[1] for i in tmp.shape.points[:]]
+            for n in range(len(x)):
+                if x[n] < 0: x[n] = x[n] + 360
+            x, y = m(x, y)
+            ax.plot(x, y, color='C7', lw=0.5, linestyle='--', zorder=0)
+        ax.plot([], [], color='C7', lw=0.5, linestyle='--', label='Trench (Bird, 2003)')
+        ax2 = utils.mapTicksBasemap(fig,m,ax,1,1,lonmin,lonmax,latmin,latmax,0)
+
+        label = ['S', 'N', 'W', 'E']
+        tmpind = 0
+        for az in [20, 110]:
+            for pm in [-1, 1]:
+                tmp = geod.Direct(model_para.lat[0], model_para.lon[0], az, pm*100*1e3)
+                if tmp['lon2'] < 0: tmp['lon2'] += 360
+                x0, y0 = m(tmp['lon1'], tmp['lat1'])
+                x1, y1 = m(tmp['lon2'], tmp['lat2'])
+                ax.plot([x0, x1], [y0, y1], lw=0.75, color='k', linestyle='--')
+                if az == 20 and pm == -1:
+                    ha, va = 'right', 'top'
+                    color='k'
+                elif az == 20 and pm == 1:
+                    ha, va = 'left', 'bottom'
+                    color='k'
+                elif az == 110 and pm == -1:
+                    ha, va = 'right', 'center'
+                    color='k'
+                elif az == 110 and pm == 1:
+                    ha, va = 'left', 'center'
+                    color='k'
+                ax.text(x1, y1, label[tmpind], ha=ha, va=va, color=color,
+                       path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=0.5), path_effects.Normal()])
+
+                tmpind += 1
+
+        for xpanel in range(2):
+            if xpanel == 0:
+                axp = ax.get_position()
+                ax = fig.add_axes([axp.x1+0.01, axp.y1-(axp.height/2.05), 0.3, axp.height/2.05])
+                x = tmpdf['projx']
+                rlabel = 'N'
+                llabel = 'S'
+            else:
+                ax = fig.add_axes([axp.x1+0.01, axp.y0, 0.3, axp.height/2.05])
+                x = tmpdf['projy']
+                rlabel = 'E'
+                llabel = 'W'
+
+            ax.scatter(x, tmpdf['depth'], s=1, marker='o', facecolor='k', edgecolor='none', alpha=1, zorder=1)
+
+            ax.scatter(0, edep, s=100, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=0, label='Relocated epicentre (This study)',
+                          path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
+
+            ax.text(-100, 153, llabel, ha='center', va='bottom', color='k',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=0.5), path_effects.Normal()])
+            ax.text(100, 153, rlabel, ha='center', va='bottom', color='k',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=0.5), path_effects.Normal()])
+
+            ax.set_xlim(-120, 120)
+            ax.set_ylim(0, 155)
+            ax.invert_yaxis()
+            ax.set_ylabel('Depth (km)')
+            ax.yaxis.set_ticks_position('right')
+            ax.yaxis.set_label_position('right')
+            if xpanel == 1:
+                ax.set_xlabel('Distance (km)')
+            else:
+                ax.set_xticklabels([])
+                
+            if xpanel == 0:
+                histflag = 1
+                if histflag == 1:
+                    if num == 1:
+                        _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                                   (df['origintime'] >= starttime) & (df['origintime'] <= endtime) & ( df['loctype'] == 2 ) ]
+                    else:
+                        _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                                   (df['origintime'] >= starttime) & (df['origintime'] <= endtime) ]
+                        
+
+                    _axp = ax.get_position()
+                    axhist = fig.add_axes([_axp.x1+0.12, _axp.y0, 0.2, _axp.height])
+                    bins = np.arange(0, 1000, 5)
+                    axhist.hist(_tmpdf['depth'], bins=bins, orientation='horizontal', color='C7', alpha=0.85)
+                    axhist.set_ylim(0, 155)
+                    axhist.invert_yaxis()
+                    axhist.yaxis.set_ticks_position('right')
+                    axhist.yaxis.set_label_position('right')
+                    axhist.set_xlabel('Count')
+                    axhist.set_xscale('log')
+                    if num == 0:
+                        axhist.set_ylabel('Depth (km)')
+                        
+                    if num == 1:
+                        axhist.set_yticklabels([])
+                    
+                    
+                    '''
+                    _tmpdf = df[(df['longitude'] >= lonmin) & (df['longitude'] <= lonmax) &
+                               (df['origintime'] >= starttime) & (df['origintime'] <= endtime) &
+                               (df['depth'] != -15.0) & (df['depth'] != -1.0 ) & 
+                               (df['depth'] != 12.0) & (df['depth'] != 33.0 ) & 
+                                (df['depth'] != 1.0 ) & (df['depth'] != 3.0 ) & 
+                                (df['depth'] != 5.0 ) & (df['depth'] != 8.0 ) & 
+                                (df['depth'] != 15.0 ) & (df['depth'] != 23.0 ) & 
+                                (df['depth'] != 30.0 ) & (df['depth'] != 34.0 ) & 
+                                (df['depth'] != 38.0 ) & (df['depth'] != 42.0 ) & 
+                                (df['depth'] != 48.0 ) & (df['depth'] != 55.0 ) & 
+                                (df['depth'] != 65.0 ) & (df['depth'] != 85.0 ) & 
+                                (df['depth'] != 105.0 ) & (df['depth'] != 130.0 ) & 
+                                (df['depth'] != 155.0 ) & (df['depth'] != 185.0 ) & 
+                                (df['depth'] != 225.0 ) & (df['depth'] != 275.0 ) & 
+                                (df['depth'] != 370.0 ) & (df['depth'] != 620.0 ) & 
+                                (df['depth'] != 750.0 )  
+                               ]
+                    
+                    print(len(_tmpdf), 'cut')
+                    #_tmpdf = _tmpdf[ ~((_tmpdf['depth'] >= 47.0 ) & (df['depth'] <= 49.0 )) ]
+                    #print(len(_tmpdf), 'more cut')
+                    
+                    _axp = axhist.get_position()
+                    axhist = fig.add_axes([_axp.x1+0.03, _axp.y0, _axp.width, _axp.height])
+                    axhist.hist(_tmpdf['depth'], bins=bins, orientation='horizontal', color='C7', alpha=0.85)
+                    axhist.set_ylim(0, 155)
+                    #axhist.set_xlim(0, 200)
+                    axhist.invert_yaxis()
+                    axhist.set_ylabel('Depth (km)')
+                    axhist.yaxis.set_ticks_position('right')
+                    axhist.yaxis.set_label_position('right')
+                    axhist.set_xlabel('Count')
+                    axhist.set_xscale('log')
+                    axhist.axhline(12, color='k', lw=0.2, zorder=0)
+                    axhist.axhline(33, color='k', lw=0.2, zorder=0)
+                    data = np.loadtxt('../_materials/aftershockReloc/vmodel.txt')
+                    vdeps = data[:,0]
+                    for vdep in vdeps:
+                        axhist.axhline(vdep, color='k', lw=0.2, zorder=0)
+                    _axp = axhist.get_position()
+                    fig.text(_axp.x0, _axp.y1+0.005, 'eliminated', ha='left', va='bottom', size=8,
+                           path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+                    '''
+                    
+                    if num == 1:
+                        _axp = axhist.get_position()
+                        axrms = fig.add_axes([_axp.x1+0.03, _axp.y0, _axp.width, _axp.height])
+
+                        #_tmpdf.to_csv('ssst_rms.csv')                        
+                        #__tmpdf = _tmpdf[_tmpdf['loctype']==1]
+                        #axrms.scatter(__tmpdf['rms'], __tmpdf['depth'], facecolor='C7', edgecolor='none', s=1, zorder=0)
+
+                        __tmpdf = _tmpdf[_tmpdf['loctype']==2]
+                        rms_std = np.std(__tmpdf['rms'])
+                        rms_mean = np.mean(__tmpdf['rms'])
+                        #print(rms_mean, rms_std)
+                        axrms.scatter(__tmpdf['rms'], __tmpdf['depth'], facecolor='k', edgecolor='none', s=1, zorder=1)
+                        
+                        __tmpdf = __tmpdf.sort_values(by='depth')
+                        #tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(30).mean()
+                        #axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='r', alpha=0.75)    
+                        
+                        tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(10).mean()
+                        tmp = tmp.rolling(10).median()
+                        axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='r', alpha=0.75, zorder=0)    
+
+                        #tmp = pd.Series(__tmpdf['rms'])
+                        #tmp = tmp.rolling(5).mean()
+                        #axrms.plot(tmp, __tmpdf['depth'], linestyle='-', lw=1, color='cyan', alpha=0.75)    
+
+                        #data = np.loadtxt('../_materials/aftershockReloc/vmodel.txt')
+                        #vdeps = data[:,0]
+                        #for vdep in vdeps:
+                        #    axrms.axhline(vdep, color='k', lw=0.2, zorder=0)
+                        #for vdep in np.arange(0, 150, 10):
+                        #    axrms.axhline(vdep, color='k', lw=0.2, zorder=0)
+                        
+                        
+                        axrms.set_ylim(0, 155)
+                        axrms.invert_yaxis()
+                        axrms.yaxis.set_ticks_position('right')
+                        axrms.yaxis.set_label_position('right')
+                        axrms.set_xlabel('RMS')
+                        axrms.set_ylabel('Depth (km)')
+                        #axrms.set_xscale('log')
+                        axrms.set_xlim(0, rms_mean+rms_std*2)
+                        axrms.set_xticks(np.arange(0, rms_mean+rms_std*2, 1))
+                        #axrms.set_facecolor('whitesmoke')
+                        
+                        
+                        __axp = axrms.get_position()
+                        axrmshist = fig.add_axes([__axp.x0, axp.y0, 0.2, __axp.height*0.7])
+                        __tmpdf = _tmpdf[_tmpdf['loctype']==2]
+                        bins = np.arange(0, np.max(__tmpdf['rms'])+0.1, 0.1)
+                        axrmshist.hist(__tmpdf['rms'], bins=bins, color='C7', alpha=0.85)
+                        axrmshist.yaxis.set_ticks_position('right')
+                        axrmshist.yaxis.set_label_position('right')
+                        axrmshist.set_xlabel('RMS')
+                        axrmshist.set_ylabel('Count')
+                        axrmshist.set_xticks(np.arange(0, np.max(__tmpdf['rms']), 2))
+                        #print(np.max(__tmpdf['rms']))
+                        axrmshist.set_xlim(0, np.max(__tmpdf['rms']))
+                        axrmshist.set_yticks(np.arange(0, 400, 100))
+                        axrmshist.set_ylim(0, 350)
+
+    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300, facecolor='w')
+    plt.show()
+    
 
 def seismicityFocalMech(figname):
     fig = plt.figure(figsize=figsize)
@@ -2934,3 +3360,709 @@ def bathy3D(figname):
     ax.set_axis_off()
     plt.savefig(figname, transparent=True, pad_inches=0, bbox_inches="tight", dpi=300)
     plt.show()
+
+    
+    
+def comparison_fixed_nonfixed(figname):
+    
+    fig=plt.figure(figsize=figsize)
+    models = (np.loadtxt(datarootdir+'modellist.txt', usecols=0, dtype=int)).astype(str)
+    print(models[13], models[22])
+    for model in [models[13], models[22]]:
+        model_para = utils.load_fort40(os.path.join(datarootdir, 'model_'+model, 'fort.40'))
+        if model == '211012023308':
+            axp = ax.get_position()
+            axx0, axy0 = axp.x1+0.13, axp.y0
+        else:
+            axx0, axy0 = 0.1, 0.1
+            
+        axw = 0.28
+
+        aspect = (model_para.xx[0] * model_para.mn[0])/(model_para.yy[0] * model_para.nn[0])
+        axh = axw / aspect
+
+        ax = fig.add_axes([axx0, axy0, axw, axh])
+        axp = ax.get_position()
+        
+        
+        cmap = cm.bilbao
+        if model == '210514092034':
+            axpbase = axp
+            fig.text(axp.x0+0.005, axp.y1-0.01, 'This study', size=8, va='top', ha='left', zorder=100, color='k',
+                           path_effects = [path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+        else:
+            axpbase_right = axp
+            fig.text(axp.x0+0.005, axp.y1-0.01, 'Restricted modeling', size=8, va='top', ha='left', zorder=100, color='k',
+                           path_effects = [path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+        
+
+        data = np.loadtxt(os.path.join(datarootdir, 'model_'+model, 'FFM_DCall.txt'), skiprows=1)
+        lon,lat,dep,slip = data[:,1],data[:,2],data[:,3],data[:,4]
+        strike0,dip0,rake0,strike1,dip1,rake1 = data[:,5],data[:,6],data[:,7],data[:,8],data[:,9],data[:,10]
+        xloc,yloc = data[:,11],data[:,12]
+
+        strike, dip, rake = [],[],[]
+        for i in range(len(strike0)):
+            tmpstr, tmpdip, tmprake = utils.selectplane(model_para.strike[0],model_para.dip[0],strike0[i],dip0[i],rake0[i],strike1[i],dip1[i],rake1[i])
+            strike.append(tmpstr)
+            dip.append(tmpdip)
+            rake.append(tmprake)
+
+        dx, dy = model_para.xx[0], model_para.yy[0]
+        xmin, xmax = np.min(xloc)-dx/2, np.max(xloc)+dx/2
+        ymin, ymax = np.min(yloc)-dy/2, np.max(yloc)+dy/2
+        cmap = cm.bilbao
+
+        for i in np.arange(len(slip)):
+            tmpx, tmpy = xloc[i], yloc[i]
+            tmpxlist = [tmpx-dx/2, tmpx+dx/2, tmpx+dx/2, tmpx-dx/2, tmpx-dx/2]
+            tmpylist = [tmpy-dy/2, tmpy-dy/2, tmpy+dy/2, tmpy+dy/2, tmpy-dy/2]
+            ax.fill(tmpxlist, tmpylist, facecolor=cmap(slip[i]/max(slip)), edgecolor='none', zorder=0)
+
+        if model_para.icmn[0] == 5:
+            arrowflag = 'none'
+        else:
+            arrowflag = 'none'
+            
+        x, y = xloc, yloc
+        for i in range(len(strike)):
+            if arrowflag == 'rake':
+                a=np.deg2rad(rake[i])
+                length=slip[i] / max(slip) * dx
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i], x1+x[i]], [y[i], y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+                x2, y2 =np.cos(a-np.deg2rad(150))*length*0.2, np.sin(a-np.deg2rad(150))*length*0.2
+                ax.plot([x1+x[i], x1+x2+x[i]], [y1+y[i], y1+y2+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+                x2, y2 =np.cos(a+np.deg2rad(150))*length*0.2, np.sin(a+np.deg2rad(150))*length*0.2
+                ax.plot([x1+x[i], x1+x2+x[i]], [y1+y[i], y1+y2+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+
+            elif arrowflag == 'strike':
+                a=np.deg2rad(-strike[i]+90)
+                length=slip[i] / max(slip) * dx
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i]-x1, x1+x[i]], [y[i]-y1, y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)            
+
+            elif arrowflag == 'dip':
+                a=np.deg2rad(dip[i]-180)
+                length=slip[i] / max(slip) * dy
+                x1=np.cos(a)*length
+                y1=np.sin(a)*length
+                ax.plot([x[i]-x1, x1+x[i]], [y[i]-y1, y1+y[i]], color='C2', lw=1, solid_capstyle='round', clip_on=False)
+
+            elif arrowflag == 'beach':
+                focmec = [m1[i],m2[i],m3[i],m4[i],m5[i],m6[i]]
+                focmec = utils.convertUSEtoNED(focmec)
+                tmp = beachball.plot_beachball_mpl(focmec, ax, size=dx*1.5, position=(x[i], y[i]),
+                                         beachball_type='deviatoric', edgecolor='none', color_t=cmap(slip[i]/max(slip)),
+                                         color_p='w', linewidth=0.5, alpha=1, zorder=1, view='top')
+                tmp = beachball.plot_beachball_mpl(focmec, ax, size=dx*1.5, position=(x[i], y[i]),
+                                         beachball_type='dc', edgecolor='k', color_t='none',
+                                         color_p='none', linewidth=0.5, alpha=1, zorder=1, view='top')
+
+        ax.scatter(0, 0, marker='*', s=200, facecolor='none', edgecolor='k', 
+                   path_effects = [path_effects.Stroke(linewidth=2, foreground='w'), path_effects.Normal()])
+
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
+        ax.set_xlabel('Strike (km)')
+        #ax.set_ylabel('Dip (km)')
+        if model_para.dip[0] > 0:
+            ax2 = ax.twinx()
+            depmin = model_para.depth[0]-np.sin(np.deg2rad(model_para.dip[0]))*ymin
+            depmax = model_para.depth[0]-np.sin(np.deg2rad(model_para.dip[0]))*ymax
+            ax2.set_ylim(depmin, depmax)
+            ax2.set_ylabel('Depth (km)', labelpad=-3)
+            
+            
+        ax.set_yticks([])
+        ax2.yaxis.set_label_position("left")
+        ax2.yaxis.tick_left()
+        
+
+
+        cax = fig.add_axes([axp.x1+0.005, axp.y0, 0.01, 0.1])
+        norm = mpl.colors.Normalize(vmin=0, vmax=np.max(slip))
+        mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, ticks=np.linspace(0,np.max(slip),3), format='%.1f')
+        fig.text(axp.x1-0.015, axp.y0-0.015, 'Slip (m)', va='top')
+        #cax.xaxis.tick_top()
+        #cax.xaxis.set_label_position("top")
+        
+        #props = dict(facecolor='w', alpha=0.85, edgecolor='none', boxstyle='square,pad=0.1')        
+        #for label in cax.get_yticklabels():
+        #    label.set_bbox(props)
+        #cax.yaxis.get_label().set_bbox(props)
+        
+
+
+    #plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=300, facecolor='w')        
+    #plt.show()    
+    
+    
+
+        
+        
+#def fit_comparison(figname):
+    def aziequi(ax, stalist, distancetextsize):
+        data = np.loadtxt(stalist, usecols=(5, 4))
+        d, a = (data[:, 0], 90-data[:,1])
+        x, y=(d*np.cos(a*np.pi/180.0), d*np.sin(a*np.pi/180.0))
+        sc=ax.scatter(x, y, s=40, marker='^', edgecolor='k', facecolor='w', alpha=1, lw=0.75, zorder=10)
+        #sc=ax.scatter(x, y, s=8, marker='^', edgecolor='k', facecolor='none', alpha=1, lw=0.5, zorder=10)
+        stalist=np.loadtxt(stalist, usecols=(0), dtype=str)
+        cmap = cm.bilbao
+        for (i, staname) in enumerate(stalist):
+            if staname == 'XMAS' or staname == 'PTCN' or staname == 'PEL' or staname == 'SBA' or staname == 'CRZF' or staname == 'MBWA' or staname == 'PATS' or staname == 'TATO':
+                sc=ax.scatter(x[i], y[i], s=40, marker='^', edgecolor='k', facecolor=cmap(0.5), alpha=1, lw=1, zorder=11)
+
+                text = ax.text(x[i], y[i]-12, staname, size=6, va='top', ha='center', zorder=100,
+                               path_effects = [path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+        ax.scatter(0, 0, s=100, marker='*', edgecolor='k', facecolor='none', lw=0.75)
+        theta=np.linspace(0, 360, 360)
+        for i in [30, 90]:
+            x, y=(i*np.cos(theta*np.pi/180.0), i*np.sin(theta*np.pi/180.0))
+            ax.plot(x, y, color='C7', zorder=0, solid_capstyle='round', lw=0.75, linestyle='--')
+            x, y=(i*np.cos(-90*np.pi/180.0), i*np.sin(-90*np.pi/180.0))
+            #text = ax.text(x, y, str(i)+'$\degree$', size=distancetextsize, va='center', ha='center')
+            #text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+
+        x, y=(100*np.cos(theta*np.pi/180.0), 100*np.sin(theta*np.pi/180.0))
+        ax.plot(x, y, color='k', solid_capstyle='round', lw=1)
+        ax.fill(x, y, edgecolor='none', facecolor='w', zorder=0)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.set_xticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_yticks([])
+
+
+    cmap = cm.bilbao
+    model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+    for j in np.arange(22, 23, 1):
+        modelid = model[j]
+        alpha=1
+        axw=0.25
+        axh=0.1
+
+        #fig=plt.figure(figsize=figsize)
+
+        stalist=np.loadtxt(datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', usecols=(0), dtype=str)
+        stadata=np.loadtxt(datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', usecols=(4, 5))
+        azi, dis=(stadata[:,0], stadata[:,1])
+
+        datalen = np.loadtxt(datarootdir+'model_'+str(modelid)+'/'+str(modelid)+'.station.abic', skiprows=1, usecols=5)
+        maxdatalen = max(datalen)
+        
+        indlist = []
+        for i in np.arange(0, len(stalist), 1):
+            staname = stalist[i]
+            if staname == 'XMAS' or staname == 'PTCN' or staname == 'PEL' or staname == 'SBA' or staname == 'CRZF' or staname == 'MBWA' or staname == 'PATS' or staname == 'TATO':
+                indlist.append(i)
+                
+        panelnum = 0
+        for i in indlist:
+        #for i in np.arange(0, 12, 1):
+            #num = 15
+            #mod = i // num
+            if panelnum == 0:
+                ax=fig.add_axes([axpbase_right.x1+0.08, axpbase_right.y0+axh*3, axw, axh])
+                axp0=ax.get_position()
+                #fig.text(axp.x0, axp.y1+0.03, str(pwd)+', '+modelid, va='bottom', ha='left')
+            elif panelnum == 4:
+                ax=fig.add_axes([axp0.x1+0.01, axp0.y0, axw, axh])
+            else:
+                ax=fig.add_axes([axp.x0, axp.y0-axh, axw, axh])
+            axp=ax.get_position()
+
+            if panelnum == 3 or panelnum == 7:
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(True)
+                ax.spines['left'].set_visible(False)
+                ax.set_xlabel('Time (s)')
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+                axpbottom = ax.get_position()
+            else:
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+                ax.set_xticks([])
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+                
+                
+            sta=stalist[i]
+            obsdata=datarootdir+'model_'+str(modelid)+'/obssyn/obs_'+sta+'.txt'
+            syndata=datarootdir+'model_'+str(modelid)+'/obssyn/syn_'+sta+'.txt'
+            
+            syndata_nonfixed=datarootdir+'model_'+str(210514092034)+'/obssyn/syn_'+sta+'.txt'
+            
+
+            data=np.loadtxt(obsdata, usecols=(0, 1))
+            t, amp=(data[:,0]-5, data[:,1])
+            ax.plot(t, amp, color='k', lw=1.2, alpha=alpha, label='Observed data')
+
+            data=np.loadtxt(syndata_nonfixed, usecols=(0, 1))
+            t, amp=(data[:,0]-5, data[:,1])
+            ax.plot(t, amp-1, color=cmap(0.9), lw=1.2, alpha=alpha, label='Synthetics (This study)')
+
+            data=np.loadtxt(syndata, usecols=(0, 1))
+            t, amp=(data[:,0]-5, data[:,1])
+            ax.plot(t, amp-2, color=cmap(0.3), lw=1.2, alpha=alpha, label='Synthetics (Restricted modeling)')
+            
+            
+
+            #fig.text(axp.x0-0.005, axp.y1-(axp.height/3.5), sta, \
+            #                    va='center', ha='right', size=8, color='k', clip_on=False, alpha=alpha)
+            fig.text(axp.x0, axp.y1, sta, \
+                                va='top', ha='left', size=6, color='k', clip_on=False, alpha=alpha)
+            ax.set_ylim([-3.1, 1.2])
+            #ax.set_xlim([-5, 75])
+            ax.set_xlim([-5, 50])
+            
+            ax.set_xticks(np.arange(0, 50, 15))
+            
+            panelnum += 1
+        #ax.legend(loc=(1.05, -0.18), fontsize=8)
+        ax.legend(loc=(1.01, 0), fontsize=8, handlelength=1, handletextpad=0.5)
+
+        ax=fig.add_axes([axp.x1+0.02, axpbottom.y0+0.1, axp.width*1.2, axp.width*1.2])
+        axp=ax.get_position()
+        sc = aziequi(ax, datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', 10)
+
+        plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=200, facecolor='w')
+        plt.show()
+        
+        
+        
+def fit_fixed(figname):
+    def aziequi(ax, stalist, distancetextsize):
+        data = np.loadtxt(stalist, usecols=(5, 4))
+        d, a = (data[:, 0], 90-data[:,1])
+        x, y=(d*np.cos(a*np.pi/180.0), d*np.sin(a*np.pi/180.0))
+        sc=ax.scatter(x, y, s=15, marker='^', edgecolor='k', facecolor='ivory', alpha=1, lw=0.75, zorder=10)
+        #sc=ax.scatter(x, y, s=8, marker='^', edgecolor='k', facecolor='none', alpha=1, lw=0.5, zorder=10)
+        stalist=np.loadtxt(stalist, usecols=(0), dtype=str)
+        #print(stalist)
+        #for (i, staname) in enumerate(stalist):
+        #    text = ax.text(x[i], y[i], staname, size=6, va='center')
+        #    text.set_path_effects([path_effects.Stroke(linewidth=1, foreground='w', alpha=0.85), path_effects.Normal()])
+        ax.scatter(0, 0, s=100, marker='*', edgecolor='k', facecolor='none', lw=0.75)
+        theta=np.linspace(0, 360, 360)
+        for i in [30, 90]:
+            x, y=(i*np.cos(theta*np.pi/180.0), i*np.sin(theta*np.pi/180.0))
+            ax.plot(x, y, color='C7', zorder=0, solid_capstyle='round', lw=1, linestyle='--')
+            x, y=(i*np.cos(-90*np.pi/180.0), i*np.sin(-90*np.pi/180.0))
+            text = ax.text(x, y, str(i)+'$\degree$', size=distancetextsize, va='center', ha='center')
+            text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+
+        x, y=(100*np.cos(theta*np.pi/180.0), 100*np.sin(theta*np.pi/180.0))
+        ax.plot(x, y, color='k', solid_capstyle='round', lw=1)
+        ax.fill(x, y, edgecolor='none', facecolor='w', zorder=0)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.set_xticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_yticks([])
+
+
+    model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+    for j in np.arange(22, 23, 1):
+        modelid = model[j]
+        alpha=1
+        axw=0.25
+        axh=0.075
+
+        fig=plt.figure(figsize=figsize)
+
+        stalist=np.loadtxt(datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', usecols=(0), dtype=str)
+        stadata=np.loadtxt(datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', usecols=(4, 5))
+        azi, dis=(stadata[:,0], stadata[:,1])
+
+        datalen = np.loadtxt(datarootdir+'model_'+str(modelid)+'/'+str(modelid)+'.station.abic', skiprows=1, usecols=5)
+        maxdatalen = max(datalen)
+        for i in np.arange(0, len(stalist), 1):
+        #for i in np.arange(0, 12, 1):
+            num = 15
+            mod = i // num
+            if i == 0:
+                ax=fig.add_axes([0.1, 0.1, axw, axh])
+                axp0=ax.get_position()
+                #fig.text(axp.x0, axp.y1+0.03, str(pwd)+', '+modelid, va='bottom', ha='left')
+            elif i == num*(mod):
+                ax=fig.add_axes([axp0.x1+axw*(mod-1)+0.08*(mod), axp0.y0, axw, axh])
+            elif i > num*(mod) and i < num*(mod+1):
+                ax=fig.add_axes([axp.x0, axp.y0-axh, axw, axh])
+            axp=ax.get_position()
+
+            if i == num*(mod+1)-1 or i == len(stalist)-1:
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(True)
+                ax.spines['left'].set_visible(False)
+                ax.set_xlabel('Time (s)')
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+                axpbottom = ax.get_position()
+            else:
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+                ax.set_xticks([])
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+
+            sta=stalist[i]
+            obsdata=datarootdir+'model_'+str(modelid)+'/obssyn/obs_'+sta+'.txt'
+            syndata=datarootdir+'model_'+str(modelid)+'/obssyn/syn_'+sta+'.txt'
+
+            data=np.loadtxt(obsdata, usecols=(0, 1))
+            t, amp=(data[:,0]-5, data[:,1])
+            ax.plot(t, amp, color='k', lw=1, alpha=alpha)
+            data=np.loadtxt(syndata, usecols=(0, 1))
+            t, amp=(data[:,0]-5, data[:,1])
+            ax.plot(t, amp, color='r', lw=1, alpha=alpha)
+
+            fig.text(axp.x0, axp.y1-(axp.height/2), sta+'\nAz.='+str(azi[i])+'$\degree$\nDel.='+str(dis[i])+'$\degree$', \
+                                va='center', ha='right', size=6, color='k', clip_on=False, alpha=alpha)
+            ax.set_ylim([-1.2, 1.2])
+            ax.set_xlim([-5, 75])
+            ax.set_xticks(np.arange(0, 80, 20))
+
+        ax=fig.add_axes([axp.x0, axpbottom.y0-axp.width-0.1, axp.width, axp.width])
+        axp=ax.get_position()
+        sc = aziequi(ax, datarootdir+'model_'+str(modelid)+'/station_'+str(modelid)+'.list', 10)
+
+        plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=200)
+        plt.show()
+        
+        
+def get_comploc_evlist_prepared(cat_nll,
+                                cat_geonet,
+                                max_depth_uncertainty_km,
+                                max_latlon_uncertainty_degree,
+                                max_gap,
+                                min_arrivals,
+                                evfile):
+    
+    with open(evfile, mode='w') as f:
+        for event in cat_nll.events:
+            qyr = event.origins[0].time.year
+            qmon = event.origins[0].time.month
+            qdy = event.origins[0].time.day
+            qhr = event.origins[0].time.hour
+            qmn = event.origins[0].time.minute
+
+            sec = event.origins[0].time.second
+            microsec = event.origins[0].time.microsecond
+            qsc = sec + microsec*1e-6
+
+            qlat = event.origins[0]['latitude']
+            qlon = event.origins[0]['longitude']
+            if qlon < 0: qlon += 360
+
+            qdep = event.origins[0]['depth'] * 1e-3
+
+            # unique event id linked to original catalog, which is used for searching phase information
+            unique_eventid = str(event.creation_info.author[4:33])
+            tmpind = np.where(id_list[:,0] == unique_eventid)
+            resource_id = str(id_list[tmpind][0][1])
+            event_geonet = [event_geonet for event_geonet in cat_geonet if str(event_geonet.resource_id) == resource_id][0]
+            qmag = event_geonet.magnitudes[0]['mag']
+            idcusp = str(event_geonet.resource_id)[20:29].replace('p', '')
+
+            event_time = str(qyr).rjust(5) + str(qmon).rjust(3) + str(qdy).rjust(3) + str(qhr).rjust(3)  + str(qmn).rjust(3) +\
+            str('{:.3f}'.format(qsc)).rjust(7)
+            s = idcusp.rjust(10) + event_time + \
+            str('{:.5f}'.format(qlat)).rjust(10)+\
+            str('{:.5f}'.format(qlon)).rjust(12)+\
+            str('{:.3f}'.format(qdep)).rjust(8)+\
+            str('{:.2f}'.format(qmag)).rjust(6)
+
+
+            lon_uncertain = event.origins[0].longitude_errors.uncertainty
+            lat_uncertain = event.origins[0].latitude_errors.uncertainty
+            depth_uncertain = event.origins[0].depth_errors.uncertainty
+
+            if lon_uncertain < max_latlon_uncertainty_degree and lat_uncertain < max_latlon_uncertainty_degree and \
+            depth_uncertain*1e-3 < max_depth_uncertainty_km and \
+            event.origins[0].quality.azimuthal_gap < max_gap and \
+            len(event.origins[0].arrivals) >= min_arrivals:
+
+                print(s, file=f)
+
+                
+def seismicity_geonet_USGS(figname):
+    import requests
+    import io
+    
+    datarootdir = '../materials/'
+
+    # GeoNet seismicity
+    url = 'https://quakesearch.geonet.org.nz/csv?bbox=178,-40,-178,-33&startdate=2011-03-04T13:26:35&enddate=2021-03-04T13:27:34'
+    urlData = requests.get(url).content
+    df = pd.read_csv(io.StringIO(urlData.decode('utf-8')), skipinitialspace=True)
+    df.to_csv(os.path.join(datarootdir, '_geonetBackgroundSeismicity.csv'))
+
+    url = 'https://quakesearch.geonet.org.nz/csv?bbox=178,-40,-178,-33&startdate=2021-03-04T13:27:35&enddate=2021-04-11T13:27:35'
+    urlData = requests.get(url).content
+    df = pd.read_csv(io.StringIO(urlData.decode('utf-8')), skipinitialspace=True)
+    df.to_csv(os.path.join(datarootdir, '_geonetAftershock.csv'))
+
+    # USGS seismicity 
+    url = 'https://earthquake.usgs.gov/fdsnws/event/1/query.csv?starttime=2011-03-04%2013:26:35&endtime=2021-03-04%2013:27:34&maxlatitude=-33&minlatitude=-40&maxlongitude=182&minlongitude=178&minmagnitude=0&orderby=time'
+    urlData = requests.get(url).content
+    df = pd.read_csv(io.StringIO(urlData.decode('utf-8')), skipinitialspace=True)
+    df.to_csv(os.path.join(datarootdir, '_USGSBackgroundSeismicity.csv'))
+
+    url = 'https://earthquake.usgs.gov/fdsnws/event/1/query.csv?starttime=2021-03-04%2013:27:35&endtime=2021-04-11%2013:27:35&maxlatitude=-33&minlatitude=-40&maxlongitude=182&minlongitude=178&minmagnitude=0&orderby=time'
+    urlData = requests.get(url).content
+    df = pd.read_csv(io.StringIO(urlData.decode('utf-8')), skipinitialspace=True)
+    df.to_csv(os.path.join(datarootdir, '_USGSAftershock.csv'))
+
+
+    model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+    j = 13 # optimum model
+    model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
+    elon, elat, edep = model_para.lon[0], model_para.lat[0], model_para.depth[0]
+    #print(model[j], model_para)
+
+
+    fig = plt.figure(figsize=figsize)
+
+    lonmin, lonmax, latmin, latmax=178, 182, -40, -33
+    m=Basemap(llcrnrlon=lonmin,llcrnrlat=latmin,urcrnrlon=lonmax,urcrnrlat=latmax,\
+              rsphere=(6378137.00,6356752.3142),resolution='i',projection='cyl')
+    x, y=m([lonmin, lonmax], [latmin, latmax])
+    aspect=abs(max(x)-min(x))/abs(max(y)-min(y))
+
+    axpxloc, axpyloc, axpwidth = 0.1, 0.1,0.5
+    mapheight=axpwidth/aspect
+
+    for panel in range(2):
+        if panel == 0:
+            axpxloc = 0.1
+            axpyloc = 0.1
+            panellabel = 'GeoNet'
+        else:
+            axpxloc = axp0.x0
+            axpyloc = axp0.y0-axp0.height-0.15
+            panellabel = 'USGS NEIC'
+
+        ax=fig.add_axes([axpxloc, axpyloc, axpwidth, mapheight])
+        axp=axp0 = ax.get_position()
+        ax2 = utils.mapTicksBasemap(fig,m,ax,1,1,lonmin,lonmax,latmin,latmax,0)
+        ax2.set_facecolor('whitesmoke')    
+        fig.text(axp.x0, axp.y1+0.005, panellabel, ha='left', va='bottom', size=8, color='k',
+               path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+
+
+        src = shapefile.Reader(datarootdir+'work/tectonicplates/PB2002_boundaries.shp')
+        for tmp in src.shapeRecords():
+            x = [i[0] for i in tmp.shape.points[:]]
+            y = [i[1] for i in tmp.shape.points[:]]
+            for n in range(len(x)):
+                if x[n] < 0: x[n] = x[n] + 360
+            x, y = m(x, y)
+            ax.plot(x, y, color='C7', lw=0.5, linestyle='--', zorder=0)
+        ax.plot([], [], color='C7', lw=0.5, linestyle='--', label='Trench (Bird, 2003)')
+        x, y = m(model_para.lon[0], model_para.lat[0])
+        ax.scatter(x, y, s=500, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=10, label='Relocated epicentre (This study)',
+                  path_effects=[path_effects.Stroke(linewidth=2, foreground='w', alpha=1), path_effects.Normal()])
+
+
+        if panel == 0:
+            for inputdata, color in zip(['_geonetBackgroundSeismicity.csv', '_geonetAftershock.csv'], ['k', 'r']):
+                lon, lat, dep, mag = np.loadtxt(os.path.join(datarootdir, inputdata), usecols=(5,6,8,7), skiprows=1, delimiter=',', unpack=True)
+                for n in range(len(lon)):
+                    if lon[n] < 0: lon[n] += 360
+                x, y = m(lon, lat)
+                sc = ax.scatter(x, y, s=3, marker='o', facecolor=color, edgecolor='none', alpha=1, zorder=1)
+                #print(min(mag), max(mag), len(lon))
+
+        else:
+            for inputdata, color in zip(['_USGSBackgroundSeismicity.csv', '_USGSAftershock.csv'], ['k', 'r']):
+                lon, lat, dep, mag = np.loadtxt(os.path.join(datarootdir, inputdata), usecols=(3,2,4,5), skiprows=1, delimiter=',', unpack=True)
+                for n in range(len(lon)):
+                    if lon[n] < 0: lon[n] += 360
+                x, y = m(lon, lat)
+                sc = ax.scatter(x, y, s=3, marker='o', facecolor=color, edgecolor='none', alpha=1, zorder=1)
+                #print(min(mag), max(mag))
+
+
+
+        label = ['S', 'N', 'W', 'E']
+        tmpind = 0
+        for az in [20]:
+            for pm in [-300, 500]:
+                tmp = geod.Direct(model_para.lat[0], model_para.lon[0], az, pm*1e3)
+                if tmp['lon2'] < 0: tmp['lon2'] += 360
+                x0, y0 = m(tmp['lon1'], tmp['lat1'])
+                x1, y1 = m(tmp['lon2'], tmp['lat2'])
+                ax.plot([x0, x1], [y0, y1], lw=2, color='k', linestyle='--')
+                if az == 20 and pm == -300:
+                    ha, va = 'center', 'bottom'
+                    color='k'
+                elif az == 20 and pm == 500:
+                    ha, va = 'center', 'top'
+                    color='k'
+                elif az == 110 and pm == -1:
+                    ha, va = 'right', 'center'
+                    color='k'
+                elif az == 110 and pm == 1:
+                    ha, va = 'left', 'center'
+                    color='k'
+                ax.text(x1, y1, label[tmpind], ha=ha, va=va, color='k', fontweight='bold',
+                       path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+
+                tmpind += 1
+
+
+
+        axp = ax.get_position()
+        ax = fig.add_axes([axp.x1+0.01, axp.y0, 0.75, axp.height])
+
+        ax.set_xlim(-290, 490)
+        ax.set_ylim(0, 155)
+        ax.invert_yaxis()
+        ax.set_ylabel('Depth (km)')
+        ax.yaxis.set_ticks_position('right')
+        ax.yaxis.set_label_position('right')
+        ax.set_xlabel('Distance (km)')
+        ax.text(-270, 153, 'S', ha='center', va='bottom', color='k', fontweight='bold',
+               path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+        ax.text(470, 153, 'N', ha='center', va='bottom', color='k', fontweight='bold',
+               path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+
+
+        if panel == 0:
+            for inputdata, color in zip(['_geonetBackgroundSeismicity.csv', '_geonetAftershock.csv'], ['k', 'r']):
+                data = np.loadtxt(os.path.join(datarootdir, inputdata), usecols=(5,6,8), skiprows=1, delimiter=',')
+                np.savetxt(datarootdir+'work/tmp.txt', data)
+                command = ['gmt','project',datarootdir+'work/tmp.txt','-C'+str(elon)+'/'+str(elat),'-A20','-Q','>',
+                           datarootdir+'work/tmp_proj_20.txt']
+                process = subprocess.Popen(command,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                stdout, stderr = process.communicate()
+
+                data = np.loadtxt(datarootdir+'work/tmp_proj_20.txt')
+                lon, lat, dep, x, y = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4]*-1
+                for n in range(len(lon)):
+                    if lon[n] < 0: lon[n] += 360
+                ax.scatter(x, dep, s=3, marker='o', facecolor=color, edgecolor='none', alpha=1, zorder=1)
+
+
+            ax.scatter(0, edep, s=500, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=0, label='Relocated epicentre (This study)',
+                          path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
+
+
+            axp = ax.get_position()
+            fig.text(axp.x0, axp.y1+0.005, 'Black: 2011-03-04 to 2021-03-04\n'+r'$0.4≤M≤7.1$', ha='left', va='bottom', size=8, color='k',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+            fig.text(axp.x1, axp.y1+0.005, 'Red: 2021-03-04 to 2021-04-11\n'+r'$1.0≤M≤6.2$', ha='right', va='bottom', size=8, color='r',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+            ax.set_facecolor('whitesmoke')
+
+        else:
+            for inputdata, color in zip(['_USGSBackgroundSeismicity.csv', '_USGSAftershock.csv'], ['k', 'r']):
+                data = np.loadtxt(os.path.join(datarootdir, inputdata), usecols=(3,2,4), skiprows=1, delimiter=',')
+                np.savetxt(datarootdir+'work/tmp.txt', data)
+                command = ['gmt','project',datarootdir+'work/tmp.txt','-C'+str(elon)+'/'+str(elat),'-A20','-Q','>',
+                           datarootdir+'work/tmp_proj_20.txt']
+                process = subprocess.Popen(command,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                stdout, stderr = process.communicate()
+
+                data = np.loadtxt(datarootdir+'work/tmp_proj_20.txt')
+                lon, lat, dep, x, y = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4]*-1
+                for n in range(len(lon)):
+                    if lon[n] < 0: lon[n] += 360
+                ax.scatter(x, dep, s=3, marker='o', facecolor=color, edgecolor='none', alpha=1, zorder=1)
+
+
+            ax.scatter(0, edep, s=500, marker='*', facecolor='none', edgecolor='k', alpha=1, lw=1, zorder=0, label='Relocated epicentre (This study)',
+                          path_effects=[path_effects.Stroke(linewidth=1.5, foreground='w', alpha=1), path_effects.Normal()])
+
+
+            axp = ax.get_position()
+            fig.text(axp.x0, axp.y1+0.005, 'Black: 2011-03-04 to 2021-03-04\n'+r'$3.8≤M≤7.0$', ha='left', va='bottom', size=8, color='k',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+            fig.text(axp.x1, axp.y1+0.005, 'Red: 2021-03-04 to 2021-04-11\n'+r'$4.0≤M≤6.3$', ha='right', va='bottom', size=8, color='r',
+                   path_effects=[path_effects.Stroke(linewidth=3, foreground='w', alpha=1), path_effects.Normal()])
+            ax.set_facecolor('whitesmoke')
+
+
+    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=150, facecolor='w')
+    plt.show()
+
+    
+    
+def timeevo_strike(figname):
+    import linecache
+
+    def load_setting_fort40(file):
+        lines=linecache.getlines(file)
+        fort40=np.genfromtxt(file, skip_header=1, skip_footer=len(lines)-2)
+        moment, mw, h0, vr=fort40[0], fort40[1], fort40[5], fort40[6]
+        fort40=np.genfromtxt(file, skip_header=3, skip_footer=len(lines)-4)
+        model_str, model_dip=fort40[0], fort40[1]
+        fort40=np.genfromtxt(file, skip_header=5, skip_footer=len(lines)-6)
+        model_t_int, model_jtn, model_icmn=fort40[6], fort40[7], fort40[8]
+        lines=linecache.getlines(file)
+        fort40=np.genfromtxt(file, skip_header=7, skip_footer=len(lines)-8)
+        variance=fort40[0]        
+        return h0, model_dip, model_icmn, model_str
+
+
+    import utils
+    model=np.loadtxt(datarootdir+'modellist.txt', dtype=int, usecols=0)
+    j = 13 # optimum model
+    model_para = utils.load_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
+    elon, elat, edep = model_para.lon[0], model_para.lat[0], model_para.depth[0]
+
+    h0, model_dip, model_icmn, model_stk=load_setting_fort40(datarootdir+'model_'+str(model[j])+'/fort.40')
+
+    data=np.loadtxt(datarootdir+'model_'+str(model[j])+'/slip-rate-time_along_strike.txt', skiprows=1)
+    t, x, amp = data[:,0], data[:,1], data[:,3]
+    xs=np.linspace(min(x), max(x), 1000)
+    ys=np.linspace(min(t), max(t), 1000)
+    X, Y = np.meshgrid(xs, ys)
+    Z = griddata((x, t), amp, (X, Y),'linear')
+    levels = np.linspace(0, max(amp), 11)
+
+    fig = plt.figure(figsize=figsize)
+    ax=fig.add_axes([0.1, 0.1, 0.5, 0.5])
+    axp=ax.get_position()
+
+    cmap = cm.bilbao
+    sc = ax.contourf(X, Y, Z, levels=levels, cmap=cmap, vmin=0, vmax=max(amp))
+
+    ax.set_xlabel('Strike (km)')
+    ax.set_ylabel('Time (s)')
+    ax.set_xlim(min(x), max(x))
+    ax.set_ylim(0, 30)
+
+    cax=fig.add_axes([axp.x1+0.005, axp.y0, 0.01, axp.height/2])
+    norm=mpl.colors.Normalize(vmin=0, vmax=max(amp))
+    cb=mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, label='Slip rate (m/s)', 
+                                 ticks=np.linspace(0, max(amp), 5), format='%.3f')
+
+    plt.savefig(figname, bbox_inches="tight", pad_inches=0.1, dpi=300, facecolor='w')
+    plt.show()
+
